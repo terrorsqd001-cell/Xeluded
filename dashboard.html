@@ -671,31 +671,25 @@
             const planData = snapshot.val();
             const label = planData.label || planId;
 
-            if (!confirm(`Confirm purchase: ${toolKey.toUpperCase()} - ${label} for $${planData.price}?`)) return;
-
-            if (planData.stock > 0) {
-                try {
-                    // 1. Deduct Stock for specific plan
-                    await update(planRef, { stock: planData.stock - 1 });
-
-                    // 2. Grant Access
-                    // Calculate Expiry
-                    const validityMs = (planData.days || 30) * 24 * 60 * 60 * 1000;
-                    const expiryDate = Date.now() + validityMs;
-
-                    // Update User
-                    await update(ref(db, `users/${currentUserUid}/tool_access`), { [toolKey]: true });
-                    await update(ref(db, `users/${currentUserUid}/tool_expiry`), { [toolKey]: expiryDate });
-
-                    closeModal();
-                    alert("Purchase Successful. System Unlocked.");
-                } catch (e) {
-                    console.error(e);
-                    alert("Transaction Failed: Network Error.");
-                }
-            } else {
+            // Check stock before redirecting
+            if (planData.stock <= 0) {
                 alert("Transaction Failed: Out of Stock.");
+                return;
             }
+
+            // Close modal and redirect to payment page with plan details
+            closeModal();
+            
+            // Build URL with plan parameters
+            const params = new URLSearchParams({
+                tool: toolKey,
+                plan: planId,
+                price: planData.price,
+                label: label,
+                days: planData.days || 30
+            });
+            
+            window.location.href = `payment.html?${params.toString()}`;
         }
 
         // --- SUBSCRIPTION TIMERS ---
