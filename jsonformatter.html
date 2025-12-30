@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            padding: 40px 20px;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #d1d1d6;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 300px;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .error-box {
+            background: rgba(255, 59, 48, 0.1);
+            border: 2px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ff3b30;
+            margin-bottom: 20px;
+        }
+
+        .success-box {
+            background: rgba(48, 209, 88, 0.1);
+            border: 2px solid rgba(48, 209, 88, 0.3);
+            color: #30d158;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #30d158;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark uppercase">JSON</div>
+
+    <div class="container">
+        <header class="mb-12 border-b border-white/10 pb-8">
+            <h1 class="text-5xl font-light text-white mb-2">
+                <span class="highlight-letter">J</span>SON <span class="highlight-letter">F</span>ormatter
+            </h1>
+            <p class="text-sm text-gray-400 italic">Format, validate, and minify JSON data</p>
+        </header>
+
+        <div class="professional-border p-8 mb-8">
+            <div class="status-header p-4 mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">Tool Status</h3>
+                <p class="text-xl font-bold text-white uppercase italic">Operational</p>
+            </div>
+
+            <div id="messageBox"></div>
+
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    JSON Input
+                </label>
+                <textarea id="inputJson" placeholder='{"key": "value"}'></textarea>
+            </div>
+
+            <div class="flex gap-4 mb-6">
+                <button onclick="formatJson()" class="btn-primary flex-1">Format</button>
+                <button onclick="minifyJson()" class="btn-secondary flex-1">Minify</button>
+                <button onclick="validateJson()" class="btn-secondary flex-1">Validate</button>
+                <button onclick="clearJson()" class="btn-secondary flex-1">Clear</button>
+                <button onclick="copyJson()" class="btn-secondary flex-1">Copy</button>
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Output
+                </label>
+                <textarea id="outputJson" readonly placeholder="Formatted JSON will appear here..."></textarea>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-white/10 flex justify-between items-center opacity-30">
+            <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+            <div class="text-sm font-bold tracking-[0.8em]">
+                <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+            </div>
+            <a href="mainpage.html" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
+        </footer>
+    </div>
+
+    <script>
+        function showMessage(message, isError = false) {
+            const messageBox = document.getElementById('messageBox');
+            const className = isError ? 'error-box' : 'success-box';
+            messageBox.innerHTML = `<div class="${className}">${message}</div>`;
+            setTimeout(() => {
+                messageBox.innerHTML = '';
+            }, 5000);
+        }
+
+        function formatJson() {
+            const input = document.getElementById('inputJson').value.trim();
+            const output = document.getElementById('outputJson');
+
+            if (!input) {
+                showMessage('⚠️ Please enter JSON to format', true);
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(input);
+                const formatted = JSON.stringify(parsed, null, 2);
+                output.value = formatted;
+                showMessage('✓ JSON formatted successfully');
+            } catch (error) {
+                output.value = '';
+                showMessage('⚠️ Invalid JSON: ' + error.message, true);
+            }
+        }
+
+        function minifyJson() {
+            const input = document.getElementById('inputJson').value.trim();
+            const output = document.getElementById('outputJson');
+
+            if (!input) {
+                showMessage('⚠️ Please enter JSON to minify', true);
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(input);
+                const minified = JSON.stringify(parsed);
+                output.value = minified;
+                showMessage('✓ JSON minified successfully');
+            } catch (error) {
+                output.value = '';
+                showMessage('⚠️ Invalid JSON: ' + error.message, true);
+            }
+        }
+
+        function validateJson() {
+            const input = document.getElementById('inputJson').value.trim();
+
+            if (!input) {
+                showMessage('⚠️ Please enter JSON to validate', true);
+                return;
+            }
+
+            try {
+                JSON.parse(input);
+                showMessage('✓ JSON is valid');
+            } catch (error) {
+                showMessage('⚠️ Invalid JSON: ' + error.message, true);
+            }
+        }
+
+        function clearJson() {
+            document.getElementById('inputJson').value = '';
+            document.getElementById('outputJson').value = '';
+            document.getElementById('messageBox').innerHTML = '';
+        }
+
+        function copyJson() {
+            const output = document.getElementById('outputJson');
+            if (!output.value.trim()) {
+                showMessage('⚠️ No output to copy', true);
+                return;
+            }
+
+            output.select();
+            document.execCommand('copy');
+            showMessage('✓ Copied to clipboard');
+        }
+
+        // Auto-format on paste
+        document.getElementById('inputJson').addEventListener('paste', function() {
+            setTimeout(() => {
+                if (this.value.trim()) {
+                    formatJson();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
+

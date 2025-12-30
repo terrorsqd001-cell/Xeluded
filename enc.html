@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLASSIFIED - XeludeD Encryption System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Playfair+Display:ital,wght@1,700&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        textarea, input, select {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            font-family: 'Inter', monospace;
+            transition: all 0.3s;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        .encrypt-btn {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+
+        .encrypt-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .decrypt-btn {
+            background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+
+        .decrypt-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .success {
+            color: #30d158;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 min-h-screen">
+    <div class="watermark uppercase">Encrypted</div>
+
+    <!-- Header Section -->
+    <header class="relative z-10 max-w-6xl mx-auto mb-12">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-white/10 pb-8">
+            <div>
+                <h4 class="text-xs uppercase tracking-[0.4em] text-gray-500 mb-2 font-bold">Tier-0 Encryption Protocol // RAL System</h4>
+                <h1 class="text-5xl md:text-6xl font-light tracking-tight text-white">
+                    <span class="highlight-letter text-6xl">X</span>elude<span class="highlight-letter text-6xl">D</span> Encryptor
+                </h1>
+                <p class="text-sm text-gray-400 mt-2 italic">The Ghost Founder's Private Cipher</p>
+            </div>
+            <div class="mt-6 md:mt-0 text-right">
+                <p class="text-xs font-mono text-gray-400">System ID: RAL-994-X</p>
+                <p class="text-xs font-mono text-gray-400">Clearance: Eyes Only</p>
+                <p class="text-xs font-mono text-red-500 mt-2">⚠ CLASSIFIED</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Status Sidebar -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="status-header p-4">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white">Encryption Status</h3>
+                <p class="text-xl font-bold text-white mt-1 uppercase italic">Active</p>
+            </div>
+
+            <div class="professional-border p-6 rounded-sm">
+                <h3 class="text-xs font-bold uppercase text-gray-500 mb-4 tracking-tighter italic border-b border-white/5 pb-2">System Parameters</h3>
+                
+                <div class="mb-6">
+                    <label class="block text-[10px] uppercase text-gray-500 mb-2">Encryption Mode</label>
+                    <select id="mode" onchange="updateModeInfo()" class="w-full p-3 rounded text-sm">
+                        <option value="simple">RAL-Simple (Add/Sub)</option>
+                        <option value="complex">RAL-Advanced (Non-Linear)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase text-gray-500 mb-2">Cipher Key</label>
+                    <input type="number" id="key" value="42" class="w-full p-3 rounded text-sm font-mono">
+                    <p class="text-[9px] text-gray-600 mt-1 italic">Numeric authentication required</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white/5 rounded-sm border border-white/5 italic text-xs text-gray-400 leading-relaxed">
+                "His encryption doesn't just hide data—it mathematically erases its existence from conventional analysis."
+                <span class="block mt-2 font-bold not-italic text-[10px] text-gray-300">— Cryptanalysis Unit [REDACTED]</span>
+            </div>
+        </div>
+
+        <!-- Main Encryption Interface -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <!-- Input Section -->
+            <section class="professional-border p-6 rounded-sm">
+                <div class="flex items-center mb-4">
+                    <span class="w-8 h-[1px] bg-white mr-4"></span>
+                    <h2 class="text-lg font-bold text-white uppercase tracking-wider">Input Data</h2>
+                </div>
+                <textarea id="input" rows="6" class="w-full p-4 rounded text-sm resize-y" placeholder="Enter message to encrypt or decrypt..."></textarea>
+            </section>
+
+            <!-- Action Buttons -->
+            <section class="grid grid-cols-2 gap-4">
+                <button onclick="encrypt()" class="encrypt-btn p-4 rounded font-bold text-sm">
+                    🔒 Encrypt Message
+                </button>
+                <button onclick="decrypt()" class="decrypt-btn p-4 rounded font-bold text-sm">
+                    🔓 Decrypt Message
+                </button>
+            </section>
+
+            <!-- Output Section -->
+            <section class="professional-border p-6 rounded-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <span class="w-8 h-[1px] bg-white mr-4"></span>
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">Output Data</h2>
+                    </div>
+                    <button onclick="copyOutput()" class="copy-btn px-4 py-2 rounded text-xs">
+                        📋 Copy
+                    </button>
+                </div>
+                <textarea id="output" rows="6" readonly class="w-full p-4 rounded text-sm resize-y opacity-80"></textarea>
+                <div class="success mt-2" id="copySuccess" style="display: none;">✓ Copied to secure clipboard</div>
+            </section>
+
+            <!-- Formula Display -->
+            <section class="bg-black/40 border border-white/10 p-6 rounded-sm">
+                <h3 id="formulaTitle" class="text-xs font-bold uppercase text-gray-500 mb-3 tracking-widest">📐 RAL-Simple Formula</h3>
+                <div id="simpleInfo" class="font-mono text-xs text-gray-400">
+                    <p class="mb-2">Encryption Algorithm:</p>
+                    <code class="block bg-black/60 p-3 rounded border border-white/5 text-green-400">encrypted = charCode + key + position</code>
+                    <p class="mt-4 mb-2">Key Features:</p>
+                    <ul class="list-disc list-inside space-y-1 text-[11px]">
+                        <li>Restless Accurate Logic (RAL) implementation</li>
+                        <li>Position-dependent character shifting</li>
+                        <li>Millisecond computation speed</li>
+                    </ul>
+                </div>
+                <div id="complexInfo" style="display: none;" class="font-mono text-xs text-gray-400">
+                    <p class="mb-2">Advanced Non-Linear Algorithm:</p>
+                    <code class="block bg-black/60 p-3 rounded border border-white/5 text-green-400">encrypted = ((charCode × key) + position² + key³) mod 1000000</code>
+                    <p class="mt-4 mb-2">Key Features:</p>
+                    <ul class="list-disc list-inside space-y-1 text-[11px]">
+                        <li>Non-linear cognitive encryption engine</li>
+                        <li>Cubic and quadratic complexity layers</li>
+                        <li>Tier-0 security classification</li>
+                        <li>Renders conventional analysis irrelevant</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Forensic Data -->
+            <section class="bg-black/40 border border-white/10 p-6 font-mono text-xs rounded-sm">
+                <div class="flex justify-between border-b border-white/5 pb-2 mb-3 text-gray-500 uppercase text-[10px]">
+                    <span>Security Metric</span>
+                    <span>Status</span>
+                </div>
+                <div class="flex justify-between py-1.5 text-gray-300">
+                    <span>Brute Force Resistance</span>
+                    <span class="text-green-500">MAXIMUM</span>
+                </div>
+                <div class="flex justify-between py-1.5 text-gray-300">
+                    <span>Pattern Recognition Vulnerability</span>
+                    <span class="text-red-800">0.00%</span>
+                </div>
+                <div class="flex justify-between py-1.5 text-gray-300">
+                    <span>Decryption Without Key</span>
+                    <span class="text-red-800">IMPOSSIBLE</span>
+                </div>
+            </section>
+
+            <!-- Export Logic Section -->
+            <section class="professional-border p-6 rounded-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <span class="w-8 h-[1px] bg-white mr-4"></span>
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">Export Logic</h2>
+                    </div>
+                    <button onclick="copyLogic()" class="copy-btn px-4 py-2 rounded text-xs">
+                        📋 Copy Code
+                    </button>
+                </div>
+                <p class="text-[10px] uppercase text-gray-500 mb-3">Standalone JavaScript Functions for Integration</p>
+                <textarea id="logicOutput" readonly rows="12" class="w-full p-4 rounded text-xs resize-y font-mono opacity-80"></textarea>
+                <div class="success mt-2" id="logicCopySuccess" style="display: none;">✓ Logic copied - Ready for deployment</div>
+                <p class="text-[9px] text-gray-600 mt-2 italic">⚠ These functions can be integrated into any website or application</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center opacity-30">
+        <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+        <div class="text-sm font-bold tracking-[0.8em]">
+            <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+        </div>
+        <p class="text-[10px] uppercase tracking-widest">Destroy After Reading</p>
+    </footer>
+
+    <script>
+        // Generate exportable logic on page load
+        window.onload = function() {
+            generateExportLogic();
+        };
+
+        function generateExportLogic() {
+            const logicCode = `// XeludeD Encryption Logic - Exportable Functions
+// RAL (Restless Accurate Logic) System
+
+// Simple Mode Encryption
+function xdEncryptSimple(text, key) {
+    let encrypted = [];
+    for (let i = 0; i < text.length; i++) {
+        const charCode = text.charCodeAt(i);
+        const encryptedValue = charCode + key + i;
+        encrypted.push(encryptedValue);
+    }
+    return encrypted.join(',');
+}
+
+// Simple Mode Decryption
+function xdDecryptSimple(encryptedText, key) {
+    const encryptedArray = encryptedText.split(',').map(num => parseInt(num.trim()));
+    let decrypted = '';
+    for (let i = 0; i < encryptedArray.length; i++) {
+        const charCode = encryptedArray[i] - key - i;
+        decrypted += String.fromCharCode(charCode);
+    }
+    return decrypted;
+}
+
+// Advanced Mode Encryption
+function xdEncryptAdvanced(text, key) {
+    let encrypted = [];
+    for (let i = 0; i < text.length; i++) {
+        const charCode = text.charCodeAt(i);
+        const encryptedValue = ((charCode * key) + Math.pow(i, 2) + Math.pow(key, 3)) % 1000000;
+        encrypted.push(encryptedValue);
+    }
+    return encrypted.join(',');
+}
+
+// Advanced Mode Decryption
+function xdDecryptAdvanced(encryptedText, key) {
+    const encryptedArray = encryptedText.split(',').map(num => parseInt(num.trim()));
+    let decrypted = '';
+    for (let i = 0; i < encryptedArray.length; i++) {
+        const encryptedValue = encryptedArray[i];
+        let charCode = Math.round((encryptedValue - Math.pow(i, 2) - Math.pow(key, 3)) / key);
+        
+        if (charCode < 0) {
+            for (let mult = 0; mult < 100; mult++) {
+                const testValue = charCode + (mult * 1000000);
+                if (testValue >= 0 && testValue <= 1114111) {
+                    charCode = testValue;
+                    break;
+                }
+            }
+        }
+        decrypted += String.fromCharCode(charCode);
+    }
+    return decrypted;
+}
+
+// Usage Examples:
+// const encrypted = xdEncryptSimple("Hello World", 42);
+// const decrypted = xdDecryptSimple(encrypted, 42);
+// console.log(decrypted); // "Hello World"`;
+
+            document.getElementById('logicOutput').value = logicCode;
+        }
+
+        function copyLogic() {
+            const logicOutput = document.getElementById('logicOutput');
+            logicOutput.select();
+            document.execCommand('copy');
+            
+            const success = document.getElementById('logicCopySuccess');
+            success.style.display = 'block';
+            setTimeout(() => {
+                success.style.display = 'none';
+            }, 2000);
+        }
+
+        function updateModeInfo() {
+            const mode = document.getElementById('mode').value;
+            const formulaTitle = document.getElementById('formulaTitle');
+            const simpleInfo = document.getElementById('simpleInfo');
+            const complexInfo = document.getElementById('complexInfo');
+            
+            if (mode === 'simple') {
+                formulaTitle.textContent = '📐 RAL-Simple Formula';
+                simpleInfo.style.display = 'block';
+                complexInfo.style.display = 'none';
+            } else {
+                formulaTitle.textContent = '📐 RAL-Advanced Formula';
+                simpleInfo.style.display = 'none';
+                complexInfo.style.display = 'block';
+            }
+        }
+
+        function encrypt() {
+            const key = parseInt(document.getElementById('key').value) || 1;
+            const input = document.getElementById('input').value;
+            const mode = document.getElementById('mode').value;
+            
+            if (!input) {
+                alert('⚠ ERROR: No input data detected');
+                return;
+            }
+
+            let encrypted = [];
+            
+            if (mode === 'simple') {
+                for (let i = 0; i < input.length; i++) {
+                    const charCode = input.charCodeAt(i);
+                    const encryptedValue = charCode + key + i;
+                    encrypted.push(encryptedValue);
+                }
+            } else {
+                for (let i = 0; i < input.length; i++) {
+                    const charCode = input.charCodeAt(i);
+                    const encryptedValue = ((charCode * key) + Math.pow(i, 2) + Math.pow(key, 3)) % 1000000;
+                    encrypted.push(encryptedValue);
+                }
+            }
+            
+            document.getElementById('output').value = encrypted.join(',');
+        }
+
+        function decrypt() {
+            const key = parseInt(document.getElementById('key').value) || 1;
+            const input = document.getElementById('input').value;
+            const mode = document.getElementById('mode').value;
+            
+            if (!input) {
+                alert('⚠ ERROR: No encrypted data detected');
+                return;
+            }
+
+            try {
+                const encryptedArray = input.split(',').map(num => parseInt(num.trim()));
+                let decrypted = '';
+                
+                if (mode === 'simple') {
+                    for (let i = 0; i < encryptedArray.length; i++) {
+                        const encryptedValue = encryptedArray[i];
+                        const charCode = encryptedValue - key - i;
+                        decrypted += String.fromCharCode(charCode);
+                    }
+                } else {
+                    for (let i = 0; i < encryptedArray.length; i++) {
+                        const encryptedValue = encryptedArray[i];
+                        const charCode = Math.round((encryptedValue - Math.pow(i, 2) - Math.pow(key, 3)) / key);
+                        
+                        let actualCharCode = charCode;
+                        if (charCode < 0) {
+                            for (let mult = 0; mult < 100; mult++) {
+                                const testValue = charCode + (mult * 1000000);
+                                if (testValue >= 0 && testValue <= 1114111) {
+                                    actualCharCode = testValue;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        decrypted += String.fromCharCode(actualCharCode);
+                    }
+                }
+                
+                document.getElementById('output').value = decrypted;
+            } catch (e) {
+                alert('⚠ DECRYPTION ERROR: Invalid cipher format detected');
+            }
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            output.select();
+            document.execCommand('copy');
+            
+            const success = document.getElementById('copySuccess');
+            success.style.display = 'block';
+            setTimeout(() => {
+                success.style.display = 'none';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

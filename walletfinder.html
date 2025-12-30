@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Finder - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bip39@3.1.0/src/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scure/bip32@1.1.0/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scure/bip39@1.2.0/index.js"></script>
+    <script src="https://unpkg.com/tronweb@5.3.2/dist/TronWeb.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.js"></script>
+    <script>
+        // Make Buffer available globally for bitcoinjs-lib
+        if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined' && typeof Buffer !== 'undefined') {
+            window.Buffer = Buffer;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@5.2.0"></script>
+    <script>
+        // Ensure bitcoinjs-lib is available globally
+        (function() {
+            // Some CDNs expose it differently, normalize it
+            if (typeof bitcoin !== 'undefined' && typeof window.bitcoin === 'undefined') {
+                window.bitcoin = bitcoin;
+            }
+            if (typeof bitcoinjs !== 'undefined' && typeof window.bitcoin === 'undefined') {
+                window.bitcoin = bitcoinjs;
+            }
+            // Debug
+            console.log('Bitcoin library check:', {
+                'window.bitcoin': typeof window.bitcoin,
+                'bitcoin': typeof bitcoin,
+                'bitcoinjs': typeof bitcoinjs,
+                'Buffer': typeof Buffer
+            });
+        })();
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            padding: 40px 20px;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #d1d1d6;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .wallet-result {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .wallet-result:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .wallet-result.found {
+            border-color: rgba(48, 209, 88, 0.8);
+            background: rgba(48, 209, 88, 0.15);
+            border-left: 4px solid #30d158;
+            box-shadow: 0 0 20px rgba(48, 209, 88, 0.3);
+        }
+
+        .wallet-result.found .seed-phrase,
+        .wallet-result.found .address,
+        .wallet-result.found .balance {
+            color: #30d158 !important;
+        }
+
+        .seed-phrase {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: #ff3b30;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .address {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #d1d1d6;
+            word-break: break-all;
+        }
+
+        .balance {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            color: #30d158;
+            margin-top: 8px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff3b30;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 0.1em;
+        }
+
+        .warning-box {
+            background: rgba(255, 149, 0, 0.1);
+            border: 2px solid rgba(255, 149, 0, 0.3);
+            color: #ff9500;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ff9500;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ff3b30;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark uppercase">Wallet</div>
+
+    <div class="container">
+        <header class="mb-12 border-b border-white/10 pb-8">
+            <h1 class="text-5xl font-light text-white mb-2">
+                <span class="highlight-letter">W</span>allet <span class="highlight-letter">F</span>inder
+            </h1>
+            <p class="text-sm text-gray-400 italic">Generate random seed phrases and check for abandoned wallets with balances</p>
+        </header>
+
+        <div class="professional-border p-8 mb-8">
+            <div class="status-header p-4 mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">Tool Status</h3>
+                <p class="text-xl font-bold text-white uppercase italic">Operational</p>
+            </div>
+
+            <div class="warning-box">
+                <div class="text-xs uppercase tracking-wider text-orange-400 mb-2 font-bold">⚠️ Important Notice</div>
+                <div class="text-xs text-orange-300 space-y-1">
+                    <p>• The probability of finding a wallet with funds through random generation is astronomically low (essentially zero)</p>
+                    <p>• This tool is for educational/demonstration purposes only</p>
+                    <p>• Never share your seed phrases with anyone</p>
+                    <p>• Only use seed phrases you own or have legitimate access to</p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Search Configuration
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-2">Number of Attempts</label>
+                        <input type="number" id="attempts" value="10" min="1" max="1000" class="mb-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-2">Delay (ms)</label>
+                        <input type="number" id="delay" value="300" min="50" max="5000" step="50">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-2">Blockchain</label>
+                        <select id="blockchain">
+                            <option value="all">All (BTC + ETH + TRX + BNB + USDT)</option>
+                            <option value="both">Both (BTC + ETH)</option>
+                            <option value="btc">Bitcoin Only</option>
+                            <option value="eth">Ethereum Only</option>
+                            <option value="trx">Tron (TRX) Only</option>
+                            <option value="bnb">Binance Smart Chain (BNB) Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mb-6">
+                <button onclick="startSearch()" id="searchBtn" class="btn-primary flex-1">Start Search</button>
+                <button onclick="stopSearch()" id="stopBtn" class="btn-secondary flex-1" disabled>Stop Search</button>
+                <button onclick="clearResults()" class="btn-secondary flex-1">Clear Results</button>
+            </div>
+
+            <div id="statsSection" class="hidden mb-6">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalAttempts">0</div>
+                        <div class="stat-label">Total Attempts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="walletsFound">0</div>
+                        <div class="stat-label">Wallets Found</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalBalance">0 BTC</div>
+                        <div class="stat-label">Total Balance</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="currentSpeed">0/min</div>
+                        <div class="stat-label">Speed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultsSection" class="hidden">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Search Results
+                </label>
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-white/10 flex justify-between items-center opacity-30">
+            <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+            <div class="text-sm font-bold tracking-[0.8em]">
+                <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+            </div>
+            <a href="mainpage.html" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
+        </footer>
+    </div>
+
+    <script>
+        let isSearching = false;
+        let searchInterval = null;
+        let totalAttempts = 0;
+        let walletsFound = 0;
+        let totalBalanceBTC = 0;
+        let startTime = null;
+
+        // Full BIP39 English wordlist (2048 words)
+        const bip39Wordlist = [
+            'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident',
+            'account', 'accuse', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actual', 'adapt',
+            'add', 'addict', 'address', 'adjust', 'admit', 'adult', 'advance', 'advice', 'aerobic', 'affair', 'afford', 'afraid',
+            'again', 'age', 'agent', 'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album', 'alcohol',
+            'alert', 'alien', 'all', 'alley', 'allow', 'almost', 'alone', 'alpha', 'already', 'also', 'alter', 'always',
+            'amateur', 'amazing', 'among', 'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger', 'angle', 'angry', 'animal',
+            'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique', 'anxiety', 'any', 'apart', 'apology', 'appear',
+            'apple', 'approve', 'april', 'area', 'arena', 'argue', 'arm', 'armed', 'armor', 'army', 'around', 'arrange',
+            'arrest', 'arrive', 'arrow', 'art', 'article', 'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset', 'assist',
+            'assume', 'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction', 'audit', 'august', 'aunt',
+            'author', 'auto', 'autumn', 'average', 'avocado', 'avoid', 'awake', 'aware', 'away', 'awesome', 'awful', 'awkward',
+            'axis', 'baby', 'bachelor', 'bacon', 'badge', 'bag', 'balance', 'balcony', 'ball', 'bamboo', 'banana', 'banner',
+            'bar', 'barely', 'bargain', 'barrel', 'base', 'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because',
+            'become', 'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt', 'bench', 'benefit', 'best',
+            'betray', 'better', 'between', 'beyond', 'bicycle', 'bid', 'bike', 'bind', 'biology', 'bird', 'birth', 'bitter',
+            'black', 'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless', 'blind', 'blood', 'blossom', 'blow', 'blue',
+            'blur', 'blush', 'board', 'boat', 'body', 'boil', 'bomb', 'bone', 'bonus', 'book', 'boost', 'border',
+            'boring', 'borrow', 'boss', 'bottom', 'bounce', 'box', 'boy', 'bracket', 'brain', 'brand', 'brass', 'brave',
+            'bread', 'breeze', 'brick', 'bridge', 'brief', 'bright', 'bring', 'brisk', 'broccoli', 'broken', 'bronze', 'broom',
+            'brother', 'brown', 'brush', 'bubble', 'buddy', 'budget', 'buffalo', 'build', 'bulb', 'bulk', 'bullet', 'bundle',
+            'bunker', 'burden', 'burger', 'burst', 'bus', 'business', 'busy', 'butter', 'buyer', 'buzz', 'cabbage', 'cabin',
+            'cable', 'cactus', 'cage', 'cake', 'call', 'calm', 'camera', 'camp', 'can', 'canal', 'cancel', 'candy',
+            'cannon', 'canoe', 'canvas', 'canyon', 'capable', 'capital', 'captain', 'car', 'carbon', 'card', 'care', 'career',
+            'careful', 'careless', 'cargo', 'carpet', 'carry', 'cart', 'case', 'cash', 'casino', 'cast', 'casual', 'cat',
+            'catalog', 'catch', 'category', 'cattle', 'caught', 'cause', 'caution', 'cave', 'ceiling', 'celery', 'cement', 'census',
+            'century', 'cereal', 'certain', 'chair', 'chalk', 'champion', 'change', 'chaos', 'chapter', 'charge', 'chase', 'chat',
+            'cheap', 'check', 'cheese', 'chef', 'cherry', 'chest', 'chicken', 'chief', 'child', 'chimney', 'choice', 'choose',
+            'chronic', 'chuckle', 'chunk', 'churn', 'cigar', 'cinnamon', 'circle', 'citizen', 'city', 'civil', 'claim', 'clamp',
+            'clarify', 'claw', 'clay', 'clean', 'clerk', 'clever', 'click', 'client', 'cliff', 'climb', 'clinic', 'clip',
+            'clock', 'clog', 'close', 'cloth', 'cloud', 'clown', 'club', 'clump', 'cluster', 'clutch', 'coach', 'coast',
+            'coconut', 'code', 'coffee', 'coil', 'coin', 'collect', 'color', 'column', 'combine', 'come', 'comfort', 'comic',
+            'common', 'company', 'concert', 'conduct', 'confirm', 'congress', 'connect', 'consider', 'control', 'convince', 'cook', 'cool',
+            'copper', 'copy', 'coral', 'core', 'corn', 'correct', 'cost', 'cotton', 'couch', 'country', 'couple', 'course',
+            'cousin', 'cover', 'coyote', 'crack', 'cradle', 'craft', 'cram', 'crane', 'crash', 'crater', 'crawl', 'crazy',
+            'cream', 'credit', 'creek', 'crew', 'cricket', 'crime', 'crisp', 'critic', 'crop', 'cross', 'crouch', 'crowd',
+            'crucial', 'cruel', 'cruise', 'crumble', 'crunch', 'crush', 'cry', 'crystal', 'cube', 'culture', 'cup', 'cupboard',
+            'curious', 'current', 'curtain', 'curve', 'cushion', 'custom', 'cute', 'cycle', 'dad', 'damage', 'damp', 'dance',
+            'danger', 'daring', 'dark', 'dash', 'date', 'daughter', 'dawn', 'day', 'deal', 'debate', 'debris', 'decade',
+            'december', 'decide', 'decline', 'decorate', 'decrease', 'deer', 'defense', 'define', 'defy', 'degree', 'delay', 'deliver',
+            'delight', 'deliver', 'delta', 'demand', 'demise', 'denial', 'dentist', 'deny', 'depart', 'depend', 'deposit', 'depth',
+            'deputy', 'derive', 'describe', 'desert', 'design', 'desk', 'despair', 'destroy', 'detail', 'detect', 'develop', 'device',
+            'devote', 'diagram', 'dial', 'diamond', 'diary', 'dice', 'diesel', 'diet', 'differ', 'digital', 'dignity', 'dilemma',
+            'dinner', 'dinosaur', 'direct', 'dirt', 'disagree', 'discover', 'disease', 'dish', 'dismiss', 'disorder', 'display', 'distance',
+            'divert', 'divide', 'divorce', 'dizzy', 'doctor', 'document', 'dog', 'doll', 'dolphin', 'domain', 'donate', 'donkey',
+            'donor', 'door', 'dose', 'double', 'dove', 'draft', 'dragon', 'drama', 'drastic', 'draw', 'dream', 'dress',
+            'drift', 'drill', 'drink', 'drip', 'drive', 'drop', 'drum', 'dry', 'duck', 'dumb', 'dune', 'during',
+            'dust', 'dutch', 'duty', 'dwarf', 'dynamic', 'eager', 'eagle', 'early', 'earn', 'earth', 'easily', 'east',
+            'easy', 'eat', 'ecology', 'economy', 'edge', 'edit', 'educate', 'effort', 'egg', 'eight', 'either', 'elbow',
+            'elder', 'electric', 'elegant', 'element', 'elephant', 'elevator', 'elite', 'else', 'embark', 'embody', 'embrace', 'emerge',
+            'emotion', 'employ', 'empower', 'empty', 'enable', 'enact', 'end', 'endless', 'endorse', 'enemy', 'energy', 'enforce',
+            'engage', 'engine', 'enhance', 'enjoy', 'enlist', 'enough', 'enrich', 'enroll', 'ensure', 'enter', 'entire', 'entry',
+            'envelope', 'episode', 'equal', 'equip', 'era', 'erase', 'erode', 'erosion', 'error', 'erupt', 'escape', 'essay',
+            'essence', 'estate', 'eternal', 'ethics', 'evidence', 'evil', 'evoke', 'evolve', 'exact', 'example', 'exceed', 'excel',
+            'exception', 'exchange', 'excite', 'exclude', 'excuse', 'execute', 'exercise', 'exhaust', 'exhibit', 'exile', 'exist', 'exit',
+            'exotic', 'expand', 'expect', 'expire', 'explain', 'expose', 'express', 'extend', 'extra', 'eye', 'eyebrow', 'fabric',
+            'face', 'faculty', 'fade', 'faint', 'faith', 'fall', 'false', 'fame', 'family', 'famous', 'fan', 'fancy',
+            'fantasy', 'farm', 'fashion', 'fat', 'fatal', 'father', 'fatigue', 'fault', 'favorite', 'feature', 'february', 'federal',
+            'fee', 'feed', 'feel', 'female', 'fence', 'festival', 'fetch', 'fever', 'few', 'fiber', 'fiction', 'field',
+            'figure', 'file', 'film', 'filter', 'final', 'find', 'fine', 'finger', 'finish', 'fire', 'firm', 'first',
+            'fiscal', 'fish', 'fit', 'fitness', 'fix', 'flag', 'flame', 'flash', 'flat', 'flavor', 'flee', 'flight',
+            'flip', 'float', 'flock', 'floor', 'flower', 'fluid', 'flush', 'fly', 'foam', 'focus', 'fog', 'foil',
+            'fold', 'follow', 'food', 'foot', 'force', 'forest', 'forget', 'fork', 'fortune', 'forum', 'forward', 'fossil',
+            'foster', 'found', 'fox', 'fragile', 'frame', 'frequent', 'fresh', 'friend', 'fringe', 'frog', 'front', 'frost',
+            'frown', 'frozen', 'fruit', 'fuel', 'fun', 'funny', 'furnace', 'fury', 'future', 'gadget', 'gain', 'galaxy',
+            'gallery', 'game', 'gap', 'garage', 'garbage', 'garden', 'garlic', 'garment', 'gas', 'gasp', 'gate', 'gather',
+            'gauge', 'gaze', 'general', 'genius', 'genre', 'gentle', 'genuine', 'gesture', 'ghost', 'giant', 'gift', 'giggle',
+            'ginger', 'giraffe', 'girl', 'give', 'glad', 'glance', 'glare', 'glass', 'glide', 'glimpse', 'globe', 'gloom',
+            'glory', 'glove', 'glow', 'glue', 'goat', 'goddess', 'gold', 'good', 'goose', 'gorilla', 'gospel', 'gossip',
+            'govern', 'gown', 'grab', 'grace', 'grain', 'grant', 'grape', 'grass', 'gravity', 'great', 'green', 'grid',
+            'grief', 'grit', 'grocery', 'group', 'grow', 'grunt', 'guard', 'guess', 'guide', 'guilt', 'guitar', 'gun',
+            'gym', 'habit', 'hair', 'half', 'hammer', 'hamster', 'hand', 'happy', 'harbor', 'hard', 'harsh', 'harvest',
+            'hat', 'have', 'hawk', 'hazard', 'head', 'health', 'heart', 'heavy', 'hedgehog', 'height', 'hello', 'helmet',
+            'help', 'hen', 'hero', 'hidden', 'high', 'hill', 'hint', 'hip', 'hire', 'history', 'hobby', 'hockey',
+            'hold', 'hole', 'holiday', 'hollow', 'home', 'honey', 'hood', 'hope', 'horn', 'horror', 'horse', 'hospital',
+            'host', 'hotel', 'hour', 'hover', 'hub', 'huge', 'human', 'humble', 'humor', 'hundred', 'hungry', 'hunt',
+            'hurdle', 'hurry', 'hurt', 'husband', 'hybrid', 'ice', 'icon', 'idea', 'identify', 'idle', 'ignore', 'ill',
+            'illegal', 'illness', 'image', 'imitate', 'immense', 'immune', 'impact', 'impose', 'improve', 'impulse', 'inch', 'include',
+            'income', 'increase', 'index', 'indicate', 'indoor', 'industry', 'infant', 'inflict', 'inform', 'inhale', 'inherit', 'initial',
+            'inject', 'injury', 'inmate', 'inner', 'innocent', 'input', 'inquiry', 'insane', 'insect', 'inside', 'inspire', 'install',
+            'intact', 'interest', 'into', 'invest', 'invite', 'involve', 'iron', 'island', 'isolate', 'issue', 'item', 'ivory',
+            'jacket', 'jaguar', 'jar', 'jazz', 'jealous', 'jeans', 'jelly', 'jewel', 'job', 'join', 'joke', 'journey',
+            'joy', 'judge', 'juice', 'jump', 'jungle', 'junior', 'junk', 'just', 'kangaroo', 'keen', 'keep', 'ketchup',
+            'key', 'kick', 'kid', 'kidney', 'kind', 'kingdom', 'kiss', 'kit', 'kitchen', 'kite', 'kitten', 'kiwi',
+            'knee', 'knife', 'knock', 'know', 'lab', 'label', 'labor', 'ladder', 'lady', 'lake', 'lamp', 'language',
+            'laptop', 'large', 'later', 'latin', 'laugh', 'laundry', 'lava', 'law', 'lawn', 'lawsuit', 'layer', 'lazy',
+            'leader', 'leaf', 'learn', 'leave', 'lecture', 'left', 'leg', 'legal', 'legend', 'leisure', 'lemon', 'lend',
+            'length', 'lens', 'leopard', 'lesson', 'letter', 'level', 'liar', 'liberty', 'library', 'license', 'life', 'lift',
+            'light', 'like', 'limb', 'limit', 'link', 'lion', 'liquid', 'list', 'little', 'live', 'lizard', 'load',
+            'loan', 'lobster', 'local', 'lock', 'logic', 'lonely', 'long', 'loop', 'lottery', 'loud', 'lounge', 'love',
+            'loyal', 'lucky', 'luggage', 'lumber', 'lunar', 'lunch', 'luxury', 'lyrics', 'machine', 'mad', 'magic', 'magnet',
+            'maid', 'mail', 'main', 'major', 'make', 'mammal', 'man', 'manage', 'mandate', 'mango', 'mansion', 'manual',
+            'maple', 'marble', 'march', 'margin', 'marine', 'market', 'marriage', 'mask', 'mass', 'master', 'match', 'material',
+            'math', 'matrix', 'matter', 'maximum', 'maze', 'meadow', 'mean', 'measure', 'meat', 'mechanic', 'medal', 'media',
+            'melody', 'melt', 'member', 'memory', 'mention', 'menu', 'mercy', 'merge', 'merit', 'merry', 'mesh', 'message',
+            'metal', 'method', 'middle', 'midnight', 'milk', 'million', 'mimic', 'mind', 'minimum', 'minor', 'minute', 'miracle',
+            'mirror', 'misery', 'miss', 'mistake', 'mix', 'mixed', 'mixture', 'mobile', 'model', 'modify', 'mom', 'moment',
+            'monitor', 'monkey', 'monster', 'month', 'moon', 'moral', 'more', 'morning', 'mosquito', 'mother', 'motion', 'motor',
+            'mountain', 'mouse', 'move', 'movie', 'much', 'muffin', 'mule', 'multiply', 'muscle', 'museum', 'mushroom', 'music',
+            'must', 'mutual', 'myself', 'mystery', 'myth', 'naive', 'name', 'napkin', 'narrow', 'nasty', 'nation', 'nature',
+            'near', 'neck', 'need', 'negative', 'neglect', 'neither', 'nephew', 'nerve', 'nest', 'net', 'network', 'neutral',
+            'never', 'news', 'next', 'nice', 'night', 'noble', 'noise', 'nominee', 'noodle', 'normal', 'north', 'nose',
+            'notable', 'note', 'nothing', 'notice', 'novel', 'now', 'nuclear', 'number', 'nurse', 'nut', 'oak', 'obey',
+            'object', 'oblige', 'obscure', 'observe', 'obtain', 'obvious', 'occur', 'ocean', 'october', 'odor', 'off', 'offer',
+            'office', 'often', 'oil', 'okay', 'old', 'olive', 'olympic', 'omit', 'once', 'one', 'onion', 'online',
+            'only', 'open', 'opera', 'opinion', 'oppose', 'option', 'orange', 'orbit', 'orchard', 'order', 'ordinary', 'organ',
+            'orient', 'original', 'orphan', 'ostrich', 'other', 'outdoor', 'outer', 'output', 'outside', 'oval', 'oven', 'over',
+            'own', 'owner', 'oxygen', 'oyster', 'ozone', 'pact', 'paddle', 'page', 'pair', 'palace', 'palm', 'panda',
+            'panel', 'panic', 'panther', 'paper', 'parade', 'parent', 'park', 'parrot', 'party', 'pass', 'patch', 'path',
+            'patient', 'patrol', 'pattern', 'pause', 'pave', 'payment', 'peace', 'peanut', 'pear', 'peasant', 'pelican', 'pen',
+            'penalty', 'pencil', 'people', 'pepper', 'perfect', 'permit', 'person', 'pet', 'phone', 'photo', 'phrase', 'physical',
+            'piano', 'picnic', 'picture', 'piece', 'pig', 'pigeon', 'pill', 'pilot', 'pink', 'pioneer', 'pipe', 'pistol',
+            'pitch', 'pizza', 'place', 'planet', 'plastic', 'plate', 'play', 'please', 'pledge', 'pluck', 'plug', 'plunge',
+            'poem', 'poet', 'point', 'polar', 'pole', 'police', 'pond', 'pony', 'pool', 'popular', 'portion', 'position',
+            'possible', 'post', 'potato', 'pottery', 'poverty', 'powder', 'power', 'practice', 'praise', 'predict', 'prefer', 'prepare',
+            'present', 'pretty', 'prevent', 'price', 'pride', 'primary', 'print', 'priority', 'prison', 'private', 'prize', 'problem',
+            'process', 'produce', 'profit', 'program', 'project', 'promote', 'proof', 'property', 'prosper', 'protect', 'proud', 'provide',
+            'public', 'pudding', 'pull', 'pulp', 'pulse', 'pumpkin', 'punch', 'pupil', 'puppy', 'purchase', 'purity', 'purpose',
+            'purse', 'push', 'put', 'puzzle', 'pyramid', 'quality', 'quantum', 'quarter', 'question', 'quick', 'quit', 'quiz',
+            'quote', 'rabbit', 'raccoon', 'race', 'rack', 'radar', 'radio', 'rail', 'rain', 'raise', 'rally', 'ramp',
+            'ranch', 'random', 'range', 'rapid', 'rare', 'rate', 'rather', 'raven', 'raw', 'razor', 'ready', 'real',
+            'reason', 'rebel', 'rebuild', 'recall', 'receive', 'recipe', 'record', 'recycle', 'reduce', 'reflect', 'reform', 'refuse',
+            'region', 'regret', 'regular', 'reject', 'relax', 'release', 'relief', 'rely', 'remain', 'remember', 'remind', 'remove',
+            'render', 'renew', 'rent', 'reopen', 'repair', 'repeat', 'replace', 'report', 'require', 'rescue', 'resemble', 'resist',
+            'resource', 'response', 'result', 'retire', 'retreat', 'return', 'reunion', 'reveal', 'review', 'reward', 'rhythm', 'rib',
+            'ribbon', 'rice', 'rich', 'ride', 'ridge', 'rifle', 'right', 'rigid', 'ring', 'riot', 'rip', 'ripe',
+            'rise', 'risk', 'ritual', 'rival', 'river', 'road', 'roast', 'robot', 'robust', 'rocket', 'romance', 'roof',
+            'rookie', 'room', 'rose', 'rotate', 'rough', 'round', 'route', 'royal', 'rubber', 'rude', 'rug', 'rule',
+            'run', 'runway', 'rural', 'sad', 'saddle', 'sadness', 'safe', 'sail', 'salad', 'salmon', 'salon', 'salt',
+            'same', 'sample', 'sand', 'satisfy', 'satoshi', 'sauce', 'sausage', 'save', 'say', 'scale', 'scan', 'scare',
+            'scatter', 'scene', 'scheme', 'school', 'science', 'scissors', 'scorpion', 'scout', 'scrap', 'screen', 'script', 'scrub',
+            'sea', 'search', 'season', 'seat', 'second', 'secret', 'section', 'security', 'seed', 'seek', 'segment', 'select',
+            'sell', 'seminar', 'senior', 'sense', 'sentence', 'series', 'service', 'session', 'settle', 'setup', 'seven', 'shadow',
+            'shaft', 'shallow', 'share', 'shed', 'shell', 'sheriff', 'shield', 'shift', 'shine', 'ship', 'shiver', 'shock',
+            'shoe', 'shoot', 'shop', 'short', 'shoulder', 'shove', 'shrimp', 'shrug', 'shuffle', 'shy', 'sibling', 'sick',
+            'side', 'siege', 'sight', 'sign', 'silent', 'silk', 'silly', 'silver', 'similar', 'simple', 'since', 'sing',
+            'siren', 'sister', 'situate', 'six', 'size', 'skate', 'sketch', 'ski', 'skill', 'skin', 'skirt', 'skull',
+            'slab', 'slam', 'sleep', 'slender', 'slice', 'slide', 'slight', 'slim', 'slogan', 'slot', 'slow', 'slush',
+            'small', 'smart', 'smile', 'smoke', 'smooth', 'snack', 'snake', 'snap', 'sniff', 'snow', 'soap', 'soccer',
+            'social', 'sock', 'soda', 'soft', 'solar', 'soldier', 'solid', 'solution', 'solve', 'someone', 'song', 'soon',
+            'sorry', 'sort', 'soul', 'sound', 'soup', 'source', 'south', 'space', 'spare', 'spatial', 'spawn', 'speak',
+            'special', 'speed', 'spell', 'spend', 'sphere', 'spice', 'spider', 'spike', 'spin', 'spirit', 'split', 'spoil',
+            'sponsor', 'spoon', 'sport', 'spot', 'spray', 'spread', 'spring', 'spy', 'square', 'squeeze', 'squirrel', 'stable',
+            'stadium', 'staff', 'stage', 'stair', 'stake', 'stamp', 'stand', 'start', 'state', 'stay', 'steak', 'steel',
+            'stem', 'step', 'stereo', 'stick', 'still', 'sting', 'stock', 'stomach', 'stone', 'stool', 'story', 'stove',
+            'strategy', 'street', 'strike', 'strong', 'struggle', 'student', 'stuff', 'stumble', 'style', 'subject', 'submit', 'subway',
+            'success', 'such', 'sudden', 'suffer', 'sugar', 'suggest', 'suit', 'summer', 'sun', 'sunny', 'sunset', 'super',
+            'supply', 'supreme', 'sure', 'surface', 'surge', 'surprise', 'surround', 'survey', 'suspect', 'sustain', 'swallow', 'swamp',
+            'swap', 'swarm', 'swear', 'sweet', 'swift', 'swim', 'swing', 'switch', 'sword', 'symbol', 'symptom', 'syrup',
+            'system', 'table', 'tackle', 'tag', 'tail', 'talent', 'talk', 'tank', 'tape', 'target', 'task', 'taste',
+            'tattoo', 'taxi', 'teach', 'team', 'tell', 'ten', 'tenant', 'tennis', 'tent', 'term', 'test', 'text',
+            'thank', 'that', 'theme', 'then', 'theory', 'there', 'they', 'thing', 'this', 'thought', 'three', 'thrive',
+            'throw', 'thumb', 'thunder', 'ticket', 'tide', 'tiger', 'tilt', 'timber', 'time', 'tiny', 'tip', 'tired',
+            'tissue', 'title', 'toast', 'tobacco', 'today', 'toddler', 'toe', 'together', 'toilet', 'token', 'tomato', 'tomorrow',
+            'tone', 'tongue', 'tonight', 'tool', 'tooth', 'top', 'topic', 'topple', 'torch', 'tornado', 'tortoise', 'toss',
+            'total', 'tourist', 'toward', 'tower', 'town', 'toy', 'track', 'trade', 'traffic', 'tragic', 'train', 'transfer',
+            'trap', 'trash', 'travel', 'tray', 'treat', 'tree', 'trend', 'trial', 'tribe', 'trick', 'trigger', 'trim',
+            'trip', 'trophy', 'trouble', 'truck', 'true', 'truly', 'trumpet', 'trust', 'truth', 'try', 'tube', 'tuition',
+            'tumble', 'tuna', 'tunnel', 'turkey', 'turn', 'turtle', 'twelve', 'twenty', 'twice', 'twin', 'twist', 'two',
+            'type', 'typical', 'ugly', 'umbrella', 'unable', 'unaware', 'uncle', 'uncover', 'under', 'undo', 'unfair', 'unfold',
+            'unhappy', 'uniform', 'unique', 'unit', 'universe', 'unknown', 'unlock', 'until', 'unusual', 'unveil', 'update', 'upgrade',
+            'uphold', 'upon', 'upper', 'upset', 'urban', 'urge', 'usage', 'use', 'used', 'useful', 'useless', 'usual',
+            'utility', 'vacant', 'vacuum', 'vague', 'valid', 'valley', 'valve', 'van', 'vanish', 'vapor', 'various', 'vast',
+            'vault', 'vehicle', 'velvet', 'vendor', 'venture', 'venue', 'verb', 'verify', 'version', 'very', 'vessel', 'veteran',
+            'viable', 'vibrant', 'vicious', 'victory', 'video', 'view', 'village', 'vintage', 'violin', 'virtual', 'virus', 'visa',
+            'visit', 'visual', 'vital', 'vivid', 'vocal', 'voice', 'void', 'volcano', 'volume', 'vote', 'voyage', 'wage',
+            'wagon', 'wait', 'walk', 'wall', 'walnut', 'want', 'warfare', 'warm', 'warrior', 'wash', 'wasp', 'waste',
+            'water', 'wave', 'way', 'wealth', 'weapon', 'weary', 'weasel', 'weather', 'weave', 'web', 'wedding', 'weekend',
+            'weird', 'welcome', 'west', 'wet', 'whale', 'what', 'wheat', 'wheel', 'when', 'where', 'whip', 'whisper',
+            'wide', 'width', 'wife', 'wild', 'will', 'win', 'window', 'wine', 'wing', 'wink', 'winner', 'winter',
+            'wire', 'wisdom', 'wise', 'wish', 'witness', 'wolf', 'woman', 'wonder', 'wood', 'wool', 'word', 'work',
+            'world', 'worry', 'worth', 'wrap', 'wreck', 'wrestle', 'wrist', 'write', 'wrong', 'yard', 'year', 'yellow',
+            'you', 'young', 'youth', 'zebra', 'zero', 'zone', 'zoo'
+        ];
+
+        function generateSeedPhrase() {
+            try {
+                // Priority 1: Use ethers.js to generate valid mnemonic (most reliable)
+                if (typeof ethers !== 'undefined') {
+                    try {
+                        const wallet = ethers.Wallet.createRandom();
+                        if (wallet.mnemonic && wallet.mnemonic.phrase) {
+                            return wallet.mnemonic.phrase;
+                        }
+                    } catch (e) {
+                        console.warn('ethers createRandom failed, trying BIP39:', e);
+                    }
+                }
+                
+                // Priority 2: Use BIP39 library to generate valid mnemonic with proper checksum
+                if (typeof bip39 !== 'undefined') {
+                    try {
+                        // Generate 128 bits of entropy (16 bytes) for 12-word mnemonic
+                        const entropy = new Uint8Array(16);
+                        crypto.getRandomValues(entropy);
+                        // Convert to hex string
+                        const entropyHex = Array.from(entropy).map(b => b.toString(16).padStart(2, '0')).join('');
+                        const mnemonic = bip39.entropyToMnemonic(entropyHex);
+                        
+                        // Validate the mnemonic
+                        if (bip39.validateMnemonic(mnemonic)) {
+                            return mnemonic;
+                        }
+                    } catch (e) {
+                        console.warn('BIP39 generation failed:', e);
+                    }
+                }
+                
+                // Fallback: generate and validate manually with retries
+                let attempts = 0;
+                while (attempts < 20) {
+                    const words = [];
+                    for (let i = 0; i < 12; i++) {
+                        const randomIndex = Math.floor(Math.random() * bip39Wordlist.length);
+                        words.push(bip39Wordlist[randomIndex]);
+                    }
+                    const mnemonic = words.join(' ');
+                    
+                    // Validate if possible
+                    if (typeof ethers !== 'undefined' && ethers.utils.isValidMnemonic(mnemonic)) {
+                        return mnemonic;
+                    }
+                    if (typeof bip39 !== 'undefined' && bip39.validateMnemonic(mnemonic)) {
+                        return mnemonic;
+                    }
+                    attempts++;
+                }
+                
+                // Last resort: return random words (will be caught by address derivation)
+                const words = [];
+                for (let i = 0; i < 12; i++) {
+                    const randomIndex = Math.floor(Math.random() * bip39Wordlist.length);
+                    words.push(bip39Wordlist[randomIndex]);
+                }
+                return words.join(' ');
+            } catch (e) {
+                console.error('Mnemonic generation error:', e);
+                // Last resort fallback
+                const words = [];
+                for (let i = 0; i < 12; i++) {
+                    const randomIndex = Math.floor(Math.random() * bip39Wordlist.length);
+                    words.push(bip39Wordlist[randomIndex]);
+                }
+                return words.join(' ');
+            }
+        }
+
+        async function deriveBitcoinAddress(seedPhrase) {
+            try {
+                // Validate mnemonic first
+                if (typeof ethers !== 'undefined' && !ethers.utils.isValidMnemonic(seedPhrase)) {
+                    return 'Error: Invalid mnemonic';
+                }
+                
+                // Method 1: Use ethers to get private key, then bitcoinjs-lib (most reliable)
+                if (typeof ethers !== 'undefined') {
+                    try {
+                        const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+                        const privateKey = wallet.privateKey.substring(2); // Remove 0x
+                        const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+                        
+                        // Try multiple ways to access bitcoinjs-lib
+                        let bitcoinLib = null;
+                        // Check common global variable names
+                        if (typeof window !== 'undefined') {
+                            bitcoinLib = window.bitcoin || window.bitcoinjs || window.bitcoinjsLib || window.Bitcoin;
+                            // Also search for it in window
+                            if (!bitcoinLib) {
+                                for (let key in window) {
+                                    if (key.toLowerCase().includes('bitcoin') && 
+                                        window[key] && 
+                                        typeof window[key] === 'object' &&
+                                        (window[key].ECPair || window[key].payments || window[key].bip32)) {
+                                        bitcoinLib = window[key];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (!bitcoinLib && typeof bitcoin !== 'undefined') {
+                            bitcoinLib = bitcoin;
+                        }
+                        
+                        if (bitcoinLib) {
+                            // Check if it has the required methods
+                            if (bitcoinLib.ECPair && bitcoinLib.payments) {
+                                try {
+                                    const keyPair = bitcoinLib.ECPair.fromPrivateKey(privateKeyBuffer);
+                                    const { address } = bitcoinLib.payments.p2pkh({ pubkey: keyPair.publicKey });
+                                    if (address && address.length >= 26 && address.length <= 35) {
+                                        return address;
+                                    }
+                                } catch (e) {
+                                    console.warn('ECPair method failed:', e);
+                                }
+                            }
+                            // Try alternative method if ECPair doesn't work
+                            if (bitcoinLib.crypto && bitcoinLib.address) {
+                                try {
+                                    // Alternative derivation method
+                                    const pubKeyHash = bitcoinLib.crypto.hash160(keyPair.publicKey);
+                                    const address = bitcoinLib.address.toBase58Check(pubKeyHash, 0x00);
+                                    if (address && address.length >= 26 && address.length <= 35) {
+                                        return address;
+                                    }
+                                } catch (e) {
+                                    console.warn('Alternative method failed:', e);
+                                }
+                            }
+                        } else {
+                            console.warn('bitcoinjs-lib not found. Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('bit')));
+                        }
+                    } catch (e) {
+                        console.warn('ethers + bitcoinjs-lib method failed:', e);
+                    }
+                }
+                
+                // Method 2: Use bitcoinjs-lib with BIP39 seed directly
+                if (typeof bip39 !== 'undefined') {
+                    try {
+                        const seed = await bip39.mnemonicToSeed(seedPhrase);
+                        const seedBuffer = Buffer.from(seed);
+                        
+                        let bitcoinLib = null;
+                        if (typeof window !== 'undefined') {
+                            bitcoinLib = window.bitcoin || window.bitcoinjs || window.bitcoinjsLib;
+                        }
+                        if (!bitcoinLib && typeof bitcoin !== 'undefined') {
+                            bitcoinLib = bitcoin;
+                        }
+                        
+                        if (bitcoinLib && bitcoinLib.bip32 && bitcoinLib.payments) {
+                            const root = bitcoinLib.bip32.fromSeed(seedBuffer);
+                            const account = root.derivePath("m/44'/0'/0'/0/0");
+                            const { address } = bitcoinLib.payments.p2pkh({ pubkey: account.publicKey });
+                            if (address && address.length >= 26 && address.length <= 35) {
+                                return address;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('bitcoinjs-lib BIP32 method failed:', e);
+                    }
+                }
+                
+                // Method 3: Use @scure/bip32 with tiny-secp256k1
+                if (typeof BIP32Factory !== 'undefined' && typeof bip39 !== 'undefined') {
+                    try {
+                        const seed = await bip39.mnemonicToSeed(seedPhrase);
+                        
+                        // Check if tiny-secp256k1 is available
+                        let secp256k1 = null;
+                        if (typeof window !== 'undefined' && window.secp256k1) {
+                            secp256k1 = window.secp256k1;
+                        } else if (typeof secp256k1 !== 'undefined') {
+                            secp256k1 = secp256k1;
+                        } else {
+                            // Try to use the imported module
+                            try {
+                                const eccModule = await import('https://cdn.jsdelivr.net/npm/tiny-secp256k1@2.2.3/+esm');
+                                secp256k1 = eccModule.default || eccModule;
+                            } catch (e) {
+                                // Module import failed, try next method
+                            }
+                        }
+                        
+                        if (secp256k1 && BIP32Factory) {
+                            const BIP32 = BIP32Factory(secp256k1);
+                            const root = BIP32.fromSeed(seed);
+                            const account = root.derivePath("m/44'/0'/0'/0/0");
+                            const pubkey = account.publicKey;
+                            
+                            // Convert public key to Bitcoin address using bitcoinjs-lib
+                            let bitcoinLib = null;
+                            if (typeof window !== 'undefined') {
+                                bitcoinLib = window.bitcoin || window.bitcoinjs || window.bitcoinjsLib;
+                            }
+                            if (!bitcoinLib && typeof bitcoin !== 'undefined') {
+                                bitcoinLib = bitcoin;
+                            }
+                            
+                            if (bitcoinLib && bitcoinLib.payments) {
+                                const { address } = bitcoinLib.payments.p2pkh({ pubkey: Buffer.from(pubkey) });
+                                if (address && address.length >= 26 && address.length <= 35) {
+                                    return address;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('@scure/bip32 method failed:', e);
+                    }
+                }
+                
+                // If all methods fail, try loading bitcoinjs-lib dynamically
+                if (typeof window !== 'undefined' && !window.bitcoin && !window.bitcoinjs) {
+                    try {
+                        await new Promise((resolve, reject) => {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.5/dist/bitcoinjs-lib.min.js';
+                            script.onload = () => {
+                                // Wait a bit for the library to initialize
+                                setTimeout(() => {
+                                    if (window.bitcoin || window.bitcoinjs) {
+                                        resolve();
+                                    } else {
+                                        reject(new Error('Library loaded but not accessible'));
+                                    }
+                                }, 100);
+                            };
+                            script.onerror = reject;
+                            document.head.appendChild(script);
+                        });
+                        
+                        // Retry with ethers method after loading
+                        if (typeof ethers !== 'undefined') {
+                            const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+                            const privateKey = wallet.privateKey.substring(2);
+                            const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+                            
+                            const bitcoinLib = window.bitcoin || window.bitcoinjs;
+                            if (bitcoinLib && bitcoinLib.ECPair && bitcoinLib.payments) {
+                                const keyPair = bitcoinLib.ECPair.fromPrivateKey(privateKeyBuffer);
+                                const { address } = bitcoinLib.payments.p2pkh({ pubkey: keyPair.publicKey });
+                                if (address && address.length >= 26 && address.length <= 35) {
+                                    return address;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Dynamic loading failed:', e);
+                    }
+                }
+                
+                throw new Error('All Bitcoin derivation methods failed');
+            } catch (e) {
+                console.error('Bitcoin derivation error:', e);
+                return 'Error generating address';
+            }
+        }
+
+        function deriveEthereumAddress(seedPhrase) {
+            try {
+                // Use ethers.js for proper derivation
+                if (typeof ethers !== 'undefined') {
+                    // Validate mnemonic first
+                    if (!ethers.utils.isValidMnemonic(seedPhrase)) {
+                        // Try to generate a valid one
+                        return 'Error: Invalid mnemonic';
+                    }
+                    const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+                    return wallet.address;
+                }
+                throw new Error('ethers.js not available');
+            } catch (e) {
+                console.error('Ethereum derivation error:', e);
+                return 'Error generating address';
+            }
+        }
+
+        async function deriveTronAddress(seedPhrase) {
+            try {
+                // Use TronWeb for proper Tron address derivation
+                if (typeof TronWeb !== 'undefined' && typeof ethers !== 'undefined') {
+                    // Get private key from mnemonic
+                    const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+                    const privateKey = wallet.privateKey.substring(2); // Remove 0x prefix
+                    
+                    // Convert Ethereum private key to Tron address
+                    const tronWeb = new TronWeb({
+                        fullHost: 'https://api.trongrid.io'
+                    });
+                    
+                    const address = tronWeb.address.fromPrivateKey(privateKey);
+                    return address;
+                }
+                
+                // Fallback: derive from Ethereum address using TronWeb if available
+                if (typeof ethers !== 'undefined') {
+                    const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+                    const privateKey = wallet.privateKey.substring(2);
+                    
+                    // Manual Tron address derivation (simplified)
+                    // Tron uses same secp256k1 as Ethereum, just different address encoding
+                    if (typeof TronWeb !== 'undefined') {
+                        const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' });
+                        return tronWeb.address.fromPrivateKey(privateKey);
+                    }
+                }
+                
+                throw new Error('TronWeb or ethers not available');
+            } catch (e) {
+                console.error('Tron derivation error:', e);
+                return 'Error generating address';
+            }
+        }
+
+        async function checkBitcoinBalance(address) {
+            try {
+                const response = await fetch(`https://blockstream.info/api/address/${address}`);
+                if (!response.ok) return { balance: 0, error: null };
+                const data = await response.json();
+                const balance = (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) / 100000000;
+                return { balance: balance, error: null };
+            } catch (error) {
+                return { balance: 0, error: error.message };
+            }
+        }
+
+        async function checkEthereumBalance(address) {
+            try {
+                // Use public RPC endpoint (no API key needed)
+                const response = await fetch('https://eth.llamarpc.com', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_getBalance',
+                        params: [address, 'latest'],
+                        id: 1
+                    })
+                });
+                
+                if (!response.ok) return { balance: 0, error: null };
+                const data = await response.json();
+                if (data.result) {
+                    const balance = parseInt(data.result, 16) / 1000000000000000000; // Convert from Wei
+                    return { balance: balance, error: null };
+                }
+                return { balance: 0, error: null };
+            } catch (error) {
+                return { balance: 0, error: error.message };
+            }
+        }
+
+        async function checkTronBalance(address) {
+            try {
+                const response = await fetch(`https://api.trongrid.io/v1/accounts/${address}`);
+                if (!response.ok) return { balance: 0, error: null };
+                const data = await response.json();
+                if (data.data && data.data.length > 0) {
+                    const balance = data.data[0].balance / 1000000; // Convert from sun to TRX
+                    return { balance: balance, error: null };
+                }
+                return { balance: 0, error: null };
+            } catch (error) {
+                return { balance: 0, error: error.message };
+            }
+        }
+
+        async function checkBNBBalance(address) {
+            try {
+                const response = await fetch('https://bsc-dataseed.binance.org/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_getBalance',
+                        params: [address, 'latest'],
+                        id: 1
+                    })
+                });
+                
+                if (!response.ok) return { balance: 0, error: null };
+                const data = await response.json();
+                if (data.result) {
+                    const balance = parseInt(data.result, 16) / 1000000000000000000; // Convert from Wei
+                    return { balance: balance, error: null };
+                }
+                return { balance: 0, error: null };
+            } catch (error) {
+                return { balance: 0, error: error.message };
+            }
+        }
+
+        async function checkUSDTBalance(address, chain) {
+            try {
+                let contractAddress, rpcUrl;
+                
+                if (chain === 'eth') {
+                    contractAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7'; // USDT on Ethereum
+                    rpcUrl = 'https://eth.llamarpc.com';
+                } else if (chain === 'bsc') {
+                    contractAddress = '0x55d398326f99059fF775485246999027B3197955'; // USDT on BSC
+                    rpcUrl = 'https://bsc-dataseed.binance.org/';
+                } else if (chain === 'trx') {
+                    // Tron USDT (TRC-20)
+                    const response = await fetch(`https://api.trongrid.io/v1/accounts/${address}/tokens`);
+                    if (!response.ok) return { balance: 0, error: null };
+                    const data = await response.json();
+                    if (data.data && data.data.length > 0) {
+                        const usdtToken = data.data.find(token => token.tokenAbbr === 'USDT');
+                        if (usdtToken) {
+                            const balance = usdtToken.balance / 1000000; // USDT has 6 decimals on Tron
+                            return { balance: balance, error: null };
+                        }
+                    }
+                    return { balance: 0, error: null };
+                }
+
+                if (chain === 'eth' || chain === 'bsc') {
+                    // ERC-20/BEP-20 token balance check
+                    const response = await fetch(rpcUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'eth_call',
+                            params: [{
+                                to: contractAddress,
+                                data: '0x70a08231' + address.substring(2).padStart(64, '0') // balanceOf(address)
+                            }, 'latest'],
+                            id: 1
+                        })
+                    });
+                    
+                    if (!response.ok) return { balance: 0, error: null };
+                    const data = await response.json();
+                    if (data.result && data.result !== '0x') {
+                        const balance = parseInt(data.result, 16) / 1000000; // USDT has 6 decimals
+                        return { balance: balance, error: null };
+                    }
+                }
+                return { balance: 0, error: null };
+            } catch (error) {
+                return { balance: 0, error: error.message };
+            }
+        }
+
+        async function checkWallet(seedPhrase) {
+            const blockchain = document.getElementById('blockchain').value;
+            const result = {
+                seedPhrase: seedPhrase,
+                btcAddress: null,
+                btcBalance: 0,
+                ethAddress: null,
+                ethBalance: 0,
+                trxAddress: null,
+                trxBalance: 0,
+                bnbAddress: null,
+                bnbBalance: 0,
+                usdtEthBalance: 0,
+                usdtBscBalance: 0,
+                usdtTrxBalance: 0,
+                found: false
+            };
+
+            // Derive all addresses first
+            const promises = [];
+            
+            if (blockchain === 'btc' || blockchain === 'both' || blockchain === 'all') {
+                promises.push(deriveBitcoinAddress(seedPhrase).then(addr => {
+                    result.btcAddress = addr;
+                }));
+            }
+
+            if (blockchain === 'eth' || blockchain === 'both' || blockchain === 'all') {
+                result.ethAddress = deriveEthereumAddress(seedPhrase);
+            }
+
+            if (blockchain === 'trx' || blockchain === 'all') {
+                promises.push(deriveTronAddress(seedPhrase).then(addr => {
+                    result.trxAddress = addr;
+                }));
+            }
+
+            if (blockchain === 'bnb' || blockchain === 'all') {
+                result.bnbAddress = deriveEthereumAddress(seedPhrase); // BSC uses same format as ETH
+            }
+
+            await Promise.all(promises);
+
+            // Check all balances in parallel
+            const balancePromises = [];
+
+            if (blockchain === 'btc' || blockchain === 'both' || blockchain === 'all') {
+                if (result.btcAddress && !result.btcAddress.includes('Error')) {
+                    balancePromises.push(checkBitcoinBalance(result.btcAddress).then(res => {
+                        result.btcBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+            }
+
+            if (blockchain === 'eth' || blockchain === 'both' || blockchain === 'all') {
+                if (result.ethAddress && !result.ethAddress.includes('Error')) {
+                    balancePromises.push(checkEthereumBalance(result.ethAddress).then(res => {
+                        result.ethBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+            }
+
+            if (blockchain === 'trx' || blockchain === 'all') {
+                if (result.trxAddress && !result.trxAddress.includes('Error')) {
+                    balancePromises.push(checkTronBalance(result.trxAddress).then(res => {
+                        result.trxBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+            }
+
+            if (blockchain === 'bnb' || blockchain === 'all') {
+                if (result.bnbAddress && !result.bnbAddress.includes('Error')) {
+                    balancePromises.push(checkBNBBalance(result.bnbAddress).then(res => {
+                        result.bnbBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+            }
+
+            if (blockchain === 'all') {
+                // Check USDT on all chains
+                if (result.ethAddress && !result.ethAddress.includes('Error')) {
+                    balancePromises.push(checkUSDTBalance(result.ethAddress, 'eth').then(res => {
+                        result.usdtEthBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+                if (result.bnbAddress && !result.bnbAddress.includes('Error')) {
+                    balancePromises.push(checkUSDTBalance(result.bnbAddress, 'bsc').then(res => {
+                        result.usdtBscBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+                if (result.trxAddress && !result.trxAddress.includes('Error')) {
+                    balancePromises.push(checkUSDTBalance(result.trxAddress, 'trx').then(res => {
+                        result.usdtTrxBalance = res.balance;
+                        if (res.balance > 0) result.found = true;
+                    }));
+                }
+            }
+
+            await Promise.all(balancePromises);
+
+            return result;
+        }
+
+        function displayResult(result) {
+            const container = document.getElementById('resultsContainer');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'wallet-result' + (result.found ? ' found' : '');
+            
+            let html = `
+                <div class="seed-phrase">${result.seedPhrase}</div>
+            `;
+
+            if (result.btcAddress) {
+                html += `
+                    <div class="address mb-2">
+                        <strong class="text-red-500">BTC:</strong> ${result.btcAddress}
+                    </div>
+                    ${result.btcBalance > 0 ? `<div class="balance">💰 ${result.btcBalance.toFixed(8)} BTC</div>` : '<div class="text-xs text-gray-500">Balance: 0 BTC</div>'}
+                `;
+            }
+
+            if (result.ethAddress) {
+                html += `
+                    <div class="address mb-2">
+                        <strong class="text-red-500">ETH:</strong> ${result.ethAddress}
+                    </div>
+                    ${result.ethBalance > 0 ? `<div class="balance">💰 ${result.ethBalance.toFixed(6)} ETH</div>` : '<div class="text-xs text-gray-500">Balance: 0 ETH</div>'}
+                `;
+            }
+
+            if (result.trxAddress) {
+                html += `
+                    <div class="address mb-2">
+                        <strong class="text-red-500">TRX:</strong> ${result.trxAddress}
+                    </div>
+                    ${result.trxBalance > 0 ? `<div class="balance">💰 ${result.trxBalance.toFixed(6)} TRX</div>` : '<div class="text-xs text-gray-500">Balance: 0 TRX</div>'}
+                `;
+            }
+
+            if (result.bnbAddress) {
+                html += `
+                    <div class="address mb-2">
+                        <strong class="text-red-500">BNB:</strong> ${result.bnbAddress}
+                    </div>
+                    ${result.bnbBalance > 0 ? `<div class="balance">💰 ${result.bnbBalance.toFixed(6)} BNB</div>` : '<div class="text-xs text-gray-500">Balance: 0 BNB</div>'}
+                `;
+            }
+
+            if (result.usdtEthBalance > 0 || result.usdtBscBalance > 0 || result.usdtTrxBalance > 0) {
+                html += `<div class="address mb-2 mt-2"><strong class="text-red-500">USDT:</strong></div>`;
+                if (result.usdtEthBalance > 0) {
+                    html += `<div class="balance">💰 ${result.usdtEthBalance.toFixed(2)} USDT (ETH)</div>`;
+                }
+                if (result.usdtBscBalance > 0) {
+                    html += `<div class="balance">💰 ${result.usdtBscBalance.toFixed(2)} USDT (BSC)</div>`;
+                }
+                if (result.usdtTrxBalance > 0) {
+                    html += `<div class="balance">💰 ${result.usdtTrxBalance.toFixed(2)} USDT (TRX)</div>`;
+                }
+            }
+
+            resultDiv.innerHTML = html;
+            container.appendChild(resultDiv);
+
+            if (result.found) {
+                walletsFound++;
+                totalBalanceBTC += result.btcBalance;
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalAttempts').textContent = totalAttempts;
+            document.getElementById('walletsFound').textContent = walletsFound;
+            document.getElementById('totalBalance').textContent = totalBalanceBTC.toFixed(8) + ' BTC';
+            
+            if (startTime) {
+                const elapsed = (Date.now() - startTime) / 1000 / 60; // minutes
+                const speed = Math.round(totalAttempts / elapsed);
+                document.getElementById('currentSpeed').textContent = speed + '/min';
+            }
+        }
+
+        async function performSearch() {
+            if (!isSearching) return;
+
+            const seedPhrase = generateSeedPhrase();
+            totalAttempts++;
+            updateStats();
+
+            const result = await checkWallet(seedPhrase);
+            displayResult(result);
+
+            const delay = parseInt(document.getElementById('delay').value);
+            setTimeout(() => {
+                if (isSearching) {
+                    performSearch();
+                }
+            }, delay);
+        }
+
+        function startSearch() {
+            isSearching = true;
+            startTime = Date.now();
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('statsSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+            
+            const attempts = parseInt(document.getElementById('attempts').value);
+            let currentAttempt = 0;
+
+            const searchLoop = async () => {
+                if (!isSearching || currentAttempt >= attempts) {
+                    stopSearch();
+                    return;
+                }
+
+                const seedPhrase = generateSeedPhrase();
+                totalAttempts++;
+                updateStats();
+
+                const result = await checkWallet(seedPhrase);
+                displayResult(result);
+
+                currentAttempt++;
+                const delay = parseInt(document.getElementById('delay').value);
+                // Start next search immediately if delay is very small, otherwise wait
+                if (delay < 100) {
+                    setTimeout(searchLoop, delay);
+                } else {
+                    setTimeout(searchLoop, delay);
+                }
+            };
+
+            searchLoop();
+        }
+
+        function stopSearch() {
+            isSearching = false;
+            document.getElementById('searchBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        function clearResults() {
+            document.getElementById('resultsContainer').innerHTML = '';
+            totalAttempts = 0;
+            walletsFound = 0;
+            totalBalanceBTC = 0;
+            updateStats();
+        }
+    </script>
+</body>
+</html>

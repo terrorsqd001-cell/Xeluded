@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encoder/Decoder - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            padding: 40px 20px;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        textarea {
+            font-family: 'JetBrains Mono', monospace;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark uppercase">Encoder</div>
+
+    <div class="container">
+        <header class="mb-12 border-b border-white/10 pb-8">
+            <h1 class="text-5xl font-light text-white mb-2">
+                <span class="highlight-letter">E</span>ncoder / <span class="highlight-letter">D</span>ecoder
+            </h1>
+            <p class="text-sm text-gray-400 italic">Multi-format encoding and decoding tool</p>
+        </header>
+
+        <div class="professional-border p-8 mb-8">
+            <div class="status-header p-4 mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">Tool Status</h3>
+                <p class="text-xl font-bold text-white uppercase italic">Operational</p>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Operation Type
+                </label>
+                <select id="operationType" class="mb-4" onchange="handleOperationChange()">
+                    <option value="base64-encode">Base64 Encode</option>
+                    <option value="base64-decode">Base64 Decode</option>
+                    <option value="image-base64-encode">Image to Base64</option>
+                    <option value="image-base64-decode">Base64 to Image</option>
+                    <option value="url-encode">URL Encode</option>
+                    <option value="url-decode">URL Decode</option>
+                    <option value="html-encode">HTML Encode</option>
+                    <option value="html-decode">HTML Decode</option>
+                    <option value="hex-encode">Hex Encode</option>
+                    <option value="hex-decode">Hex Decode</option>
+                    <option value="binary-encode">Binary Encode</option>
+                    <option value="binary-decode">Binary Decode</option>
+                </select>
+            </div>
+
+            <div id="textInputSection" class="mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Input
+                </label>
+                <textarea id="inputText" placeholder="Enter text to encode/decode..."></textarea>
+            </div>
+
+            <div id="imageInputSection" class="mb-6 hidden">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Upload Image
+                </label>
+                <input type="file" id="imageInput" accept="image/*" class="mb-4" onchange="handleImageUpload(event)">
+                <div id="imagePreview" class="hidden mb-4">
+                    <img id="previewImg" class="max-w-full max-h-64 border border-white/10 rounded" alt="Preview">
+                </div>
+            </div>
+
+            <div class="flex gap-4 mb-6">
+                <button onclick="process()" class="btn-primary flex-1">Process</button>
+                <button onclick="clearAll()" class="btn-secondary flex-1">Clear</button>
+                <button onclick="copyResult()" class="btn-secondary flex-1">Copy Result</button>
+            </div>
+
+            <div id="textOutputSection">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Output
+                </label>
+                <textarea id="outputText" readonly placeholder="Result will appear here..."></textarea>
+            </div>
+
+            <div id="imageOutputSection" class="hidden">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Decoded Image
+                </label>
+                <div id="decodedImageContainer" class="border border-white/10 rounded p-4 bg-black/20">
+                    <img id="decodedImage" class="max-w-full max-h-96 mx-auto" alt="Decoded Image">
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-white/10 flex justify-between items-center opacity-30">
+            <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+            <div class="text-sm font-bold tracking-[0.8em]">
+                <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+            </div>
+            <a href="mainpage.html" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
+        </footer>
+    </div>
+
+    <script>
+        function handleOperationChange() {
+            const operation = document.getElementById('operationType').value;
+            const textInputSection = document.getElementById('textInputSection');
+            const imageInputSection = document.getElementById('imageInputSection');
+            const textOutputSection = document.getElementById('textOutputSection');
+            const imageOutputSection = document.getElementById('imageOutputSection');
+
+            if (operation === 'image-base64-encode' || operation === 'image-base64-decode') {
+                textInputSection.classList.add('hidden');
+                imageInputSection.classList.remove('hidden');
+                if (operation === 'image-base64-decode') {
+                    textInputSection.classList.remove('hidden');
+                    imageInputSection.classList.add('hidden');
+                }
+            } else {
+                textInputSection.classList.remove('hidden');
+                imageInputSection.classList.add('hidden');
+                textOutputSection.classList.remove('hidden');
+                imageOutputSection.classList.add('hidden');
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                document.getElementById('outputText').value = '⚠️ Please select a valid image file';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('previewImg');
+                img.src = e.target.result;
+                document.getElementById('imagePreview').classList.remove('hidden');
+                
+                // Auto-encode to base64
+                encodeImageToBase64(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function encodeImageToBase64(dataUrl) {
+            // Remove data:image/...;base64, prefix to get pure base64
+            const base64 = dataUrl.split(',')[1];
+            document.getElementById('outputText').value = base64;
+            document.getElementById('textOutputSection').classList.remove('hidden');
+        }
+
+        function process() {
+            const input = document.getElementById('inputText').value;
+            const operation = document.getElementById('operationType').value;
+            const output = document.getElementById('outputText');
+            const textOutputSection = document.getElementById('textOutputSection');
+            const imageOutputSection = document.getElementById('imageOutputSection');
+
+            if (operation === 'image-base64-decode') {
+                if (!input.trim()) {
+                    output.value = '⚠️ Please enter Base64 string to decode';
+                    return;
+                }
+
+                try {
+                    // Clean the base64 string (remove data URL prefix if present)
+                    let base64String = input.trim();
+                    if (base64String.includes(',')) {
+                        base64String = base64String.split(',')[1];
+                    }
+
+                    // Decode base64 to image
+                    const decodedImg = document.getElementById('decodedImage');
+                    decodedImg.src = 'data:image/png;base64,' + base64String;
+                    
+                    textOutputSection.classList.add('hidden');
+                    imageOutputSection.classList.remove('hidden');
+                } catch (error) {
+                    output.value = '⚠️ Error: ' + error.message;
+                    textOutputSection.classList.remove('hidden');
+                    imageOutputSection.classList.add('hidden');
+                }
+                return;
+            }
+
+            if (!input.trim()) {
+                output.value = '⚠️ Please enter text to process';
+                return;
+            }
+
+            try {
+                let result = '';
+
+                switch(operation) {
+                    case 'base64-encode':
+                        result = btoa(unescape(encodeURIComponent(input)));
+                        break;
+                    case 'base64-decode':
+                        result = decodeURIComponent(escape(atob(input)));
+                        break;
+                    case 'url-encode':
+                        result = encodeURIComponent(input);
+                        break;
+                    case 'url-decode':
+                        result = decodeURIComponent(input);
+                        break;
+                    case 'html-encode':
+                        result = input.replace(/&/g, '&amp;')
+                                     .replace(/</g, '&lt;')
+                                     .replace(/>/g, '&gt;')
+                                     .replace(/"/g, '&quot;')
+                                     .replace(/'/g, '&#39;');
+                        break;
+                    case 'html-decode':
+                        const textarea = document.createElement('textarea');
+                        textarea.innerHTML = input;
+                        result = textarea.value;
+                        break;
+                    case 'hex-encode':
+                        result = Array.from(input).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(' ');
+                        break;
+                    case 'hex-decode':
+                        result = input.split(' ').map(hex => String.fromCharCode(parseInt(hex, 16))).join('');
+                        break;
+                    case 'binary-encode':
+                        result = Array.from(input).map(c => c.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+                        break;
+                    case 'binary-decode':
+                        result = input.split(' ').map(bin => String.fromCharCode(parseInt(bin, 2))).join('');
+                        break;
+                }
+
+                output.value = result;
+                textOutputSection.classList.remove('hidden');
+                imageOutputSection.classList.add('hidden');
+            } catch (error) {
+                output.value = '⚠️ Error: ' + error.message;
+                textOutputSection.classList.remove('hidden');
+                imageOutputSection.classList.add('hidden');
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputText').value = '';
+        }
+
+        function copyResult() {
+            const output = document.getElementById('outputText');
+            output.select();
+            document.execCommand('copy');
+            
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.style.background = 'linear-gradient(90deg, #30d158 0%, #28a745 100%)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }
+
+        // Auto-process on operation change if input exists
+        document.getElementById('operationType').addEventListener('change', function() {
+            if (document.getElementById('inputText').value.trim()) {
+                process();
+            }
+        });
+
+        // Allow Enter+Ctrl/Cmd to process
+        document.getElementById('inputText').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                process();
+            }
+        });
+    </script>
+</body>
+</html>
+

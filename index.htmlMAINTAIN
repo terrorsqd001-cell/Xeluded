@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORE_OFFLINE // XELUDED</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&family=Rajdhani:wght@500;600;700&display=swap');
+
+        :root {
+            --primary: #ff3b30;
+            --bg: #0a0a0c;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-tech { font-family: 'Rajdhani', sans-serif; }
+
+        /* --- ANIMATED BACKGROUND --- */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 50;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 3px 100%;
+        }
+        
+        .watermark { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); 
+            font-size: 18vw; opacity: 0.02; pointer-events: none; z-index: 0; font-weight: 900; 
+        }
+
+        /* --- RESPONSIVE TERMINAL WINDOW --- */
+        .terminal-window {
+            width: 95%;
+            max-width: 900px;
+            min-height: 500px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column; /* Mobile Default: Stacked */
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            position: relative;
+            z-index: 10;
+            margin: 20px 0;
+        }
+
+        /* Switch to Side-by-Side on Desktop */
+        @media (min-width: 768px) {
+            .terminal-window { flex-direction: row; height: 500px; }
+            .terminal-sidebar { width: 300px; border-right: 1px solid #222; border-bottom: none; }
+        }
+
+        .terminal-sidebar {
+            background: #050505;
+            padding: 25px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .terminal-main {
+            flex: 1;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .highlight-letter { color: var(--primary); text-shadow: 0 0 15px rgba(255, 59, 48, 0.5); font-weight: 800; }
+        .boot-text { color: #444; font-size: 10px; font-family: 'JetBrains Mono'; line-height: 1.4; margin-bottom: 5px; }
+
+        .status-header { border-left: 4px solid var(--primary); background: rgba(255, 59, 48, 0.05); padding: 10px 15px; margin-bottom: 20px; }
+        
+        .license-alert {
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .loading-bar {
+            width: 100%; height: 2px; background: #111; margin-top: 20px; overflow: hidden; position: relative;
+        }
+        .loading-progress {
+            position: absolute; width: 40%; height: 100%; background: var(--primary);
+            animation: move 2s infinite linear;
+        }
+        @keyframes move { 0% { left: -40%; } 100% { left: 100%; } }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+    <div class="watermark uppercase">Ghost Infrastructure</div>
+
+    <div class="terminal-window">
+        <div class="terminal-sidebar">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white mb-1 tracking-tighter uppercase"><span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span></h1>
+                <p class="text-[9px] text-gray-600 font-mono mb-6 uppercase tracking-widest">Core_Deployment_V2.1</p>
+                <div id="boot-log" class="overflow-hidden h-32 md:h-40 mb-4"></div>
+            </div>
+            <div class="text-[10px] text-gray-700 font-mono mt-4">
+                System ID: <span class="text-gray-500">INFRA-NODE-MAIN</span><br>
+                Security: <span class="text-red-900">MAINTENANCE_MODE</span>
+            </div>
+        </div>
+
+        <div class="terminal-main">
+            <div class="status-header">
+                <h2 class="text-[10px] font-mono text-red-500 font-bold uppercase tracking-widest">Current Status: Restricted</h2>
+            </div>
+            
+            <h3 class="text-2xl md:text-3xl font-tech font-bold text-white uppercase tracking-tight mb-4">
+                SCHEDULED <span class="highlight-letter italic">MAINTENANCE</span>
+            </h3>
+
+            <p class="text-xs md:text-sm font-mono text-gray-400 leading-relaxed italic">
+                Infrastructure undergoing scheduled node optimization. Core database services are temporarily detached to preserve operator data integrity.
+            </p>
+
+            <div class="license-alert">
+                <p class="text-[9px] font-mono text-gray-500 uppercase mb-2 tracking-widest">Protocol: Validity_Compensation</p>
+                <p class="text-[11px] md:text-xs font-mono text-white/90">
+                    For Active Subscriptions Additional Extension For Validity Will Be Added.
+                </p>
+            </div>
+
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+
+            <p class="mt-6 text-[9px] font-mono text-gray-600 uppercase tracking-widest">
+                Awaiting manual reboot command...
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function runMaintenanceLog() {
+            const log = document.getElementById('boot-log');
+            const lines = [
+                "INITIATING CORE SHUTDOWN...",
+                "BACKING UP USER SCHEMAS...",
+                "MIGRATING TO SECURE NODE...",
+                "CLEANING CACHE LAYERS...",
+                "RE-INDEXING VALIDITY KEYS...",
+                "SYNCING LICENSE BUFFER...",
+                "AWAITING DEPLOYMENT..."
+            ];
+            
+            log.innerHTML = '';
+            lines.forEach((line, i) => {
+                setTimeout(() => {
+                    const p = document.createElement('div');
+                    p.className = "boot-text";
+                    p.textContent = `> ${line}`;
+                    log.appendChild(p);
+                    log.scrollTop = log.scrollHeight;
+                }, i * 400);
+            });
+        }
+
+        runMaintenanceLog();
+        setInterval(runMaintenanceLog, 12000);
+    </script>
+</body>
+</html>

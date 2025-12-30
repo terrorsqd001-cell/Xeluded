@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Metadata Analyzer - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            padding: 40px 20px;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(20, 20, 25, 0.3);
+        }
+
+        .file-upload-area:hover {
+            border-color: rgba(255, 59, 48, 0.5);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .file-upload-area.dragover {
+            border-color: #ff3b30;
+            background: rgba(255, 59, 48, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .metadata-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .metadata-item:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .metadata-label {
+            color: #ff3b30;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .metadata-value {
+            color: #d1d1d6;
+            word-break: break-word;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .error-box {
+            background: rgba(255, 59, 48, 0.1);
+            border: 2px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ff3b30;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ff3b30;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .api-badge {
+            display: inline-block;
+            background: rgba(48, 209, 88, 0.2);
+            border: 1px solid rgba(48, 209, 88, 0.4);
+            color: #30d158;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark uppercase">Metadata</div>
+
+    <div class="container">
+        <header class="mb-12 border-b border-white/10 pb-8">
+            <h1 class="text-5xl font-light text-white mb-2">
+                <span class="highlight-letter">I</span>mage <span class="highlight-letter">M</span>etadata <span class="highlight-letter">A</span>nalyzer
+            </h1>
+            <p class="text-sm text-gray-400 italic">Advanced EXIF extraction, GPS analysis, device detection, and multi-API image forensics</p>
+        </header>
+
+        <div class="professional-border p-8 mb-8">
+            <div class="status-header p-4 mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">Tool Status</h3>
+                <p class="text-xl font-bold text-white uppercase italic">Operational</p>
+            </div>
+
+            <div id="errorBox" class="error-box hidden"></div>
+
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Upload Image
+                </label>
+                <div class="file-upload-area" id="uploadArea" onclick="document.getElementById('imageInput').click()">
+                    <div class="text-4xl mb-4">📷</div>
+                    <p class="text-white font-bold mb-2">Click to upload or drag & drop</p>
+                    <p class="text-xs text-gray-400 mb-2">Supports: JPG, PNG, HEIC, TIFF, WebP</p>
+                    <p class="text-xs text-orange-400 italic">💡 For best results: Use original photos from camera/phone (not from social media)</p>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" onchange="handleFileSelect(event)">
+            </div>
+
+            <div class="professional-border p-4 mb-6 border-orange-900/50" style="border-left: 4px solid #ff9500;">
+                <div class="text-xs uppercase tracking-wider text-orange-400 mb-2 font-bold">📋 About EXIF Data</div>
+                <div class="text-xs text-gray-400 space-y-1">
+                    <p>• <strong>Best Sources:</strong> Original photos from cameras/phones (JPEG/RAW files)</p>
+                    <p>• <strong>Stripped by:</strong> Facebook, Instagram, Twitter, WhatsApp, most social media platforms</p>
+                    <p>• <strong>Formats:</strong> JPEG usually has EXIF, PNG/WebP may not, RAW files have the most data</p>
+                    <p>• <strong>Privacy:</strong> EXIF can contain location, device info, and timestamps - be careful sharing</p>
+                </div>
+            </div>
+
+            <div id="previewSection" class="hidden mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Image Preview
+                </label>
+                <img id="imagePreview" class="preview-image mx-auto" alt="Preview">
+            </div>
+
+            <div id="loadingSection" class="hidden mb-6 text-center">
+                <div class="loading mx-auto mb-2"></div>
+                <p class="text-xs text-gray-400">Analyzing image with multiple APIs...</p>
+            </div>
+
+            <div id="metadataSection" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-bold">
+                        Extracted Metadata & Analysis
+                    </label>
+                    <button onclick="exportMetadata()" class="btn-secondary text-xs px-4 py-2">Export JSON</button>
+                </div>
+                <div id="metadataContainer"></div>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-white/10 flex justify-between items-center opacity-30">
+            <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+            <div class="text-sm font-bold tracking-[0.8em]">
+                <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+            </div>
+            <a href="mainpage.html" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
+        </footer>
+    </div>
+
+    <script>
+        let currentMetadata = {};
+        let imageDataUrl = '';
+
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('⚠️ Please select a valid image file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageDataUrl = e.target.result;
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById('imagePreview').src = imageDataUrl;
+                    document.getElementById('previewSection').classList.remove('hidden');
+                    document.getElementById('loadingSection').classList.remove('hidden');
+                    document.getElementById('metadataSection').classList.add('hidden');
+                    
+                    // Start comprehensive analysis
+                    extractAllMetadata(file, img);
+                };
+                img.src = imageDataUrl;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function extractAllMetadata(file, img) {
+            currentMetadata = {};
+            
+            // Extract EXIF data
+            await extractEXIFMetadata(file);
+            
+            // Extract image properties
+            extractImageProperties(img, file);
+            
+            // Generate reverse image search links
+            generateReverseImageLinks();
+            
+            // Analyze image forensics
+            analyzeImageForensics(img);
+            
+            // Display all metadata
+            displayMetadata(currentMetadata);
+            
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('metadataSection').classList.remove('hidden');
+        }
+
+        function extractEXIFMetadata(file) {
+            return new Promise((resolve) => {
+                EXIF.getData(file, function() {
+                    // Get ALL EXIF tags using both methods
+                    const allTags = EXIF.getAllTags(this);
+                    
+                    // Also try direct tag access
+                    const make = EXIF.getTag(this, 'Make') || allTags.Make;
+                    const model = EXIF.getTag(this, 'Model') || allTags.Model;
+                    const software = EXIF.getTag(this, 'Software') || allTags.Software;
+                    const dateTime = EXIF.getTag(this, 'DateTime') || allTags.DateTime;
+                    const dateTimeOriginal = EXIF.getTag(this, 'DateTimeOriginal') || allTags.DateTimeOriginal;
+                    const iso = EXIF.getTag(this, 'ISOSpeedRatings') || allTags.ISOSpeedRatings;
+                    const exposureTime = EXIF.getTag(this, 'ExposureTime') || allTags.ExposureTime;
+                    const fNumber = EXIF.getTag(this, 'FNumber') || allTags.FNumber;
+                    const focalLength = EXIF.getTag(this, 'FocalLength') || allTags.FocalLength;
+                    const gpsLat = EXIF.getTag(this, 'GPSLatitude') || allTags.GPSLatitude;
+                    const gpsLon = EXIF.getTag(this, 'GPSLongitude') || allTags.GPSLongitude;
+                    const gpsLatRef = EXIF.getTag(this, 'GPSLatitudeRef') || allTags.GPSLatitudeRef;
+                    const gpsLonRef = EXIF.getTag(this, 'GPSLongitudeRef') || allTags.GPSLongitudeRef;
+                    
+                    // File Information
+                    currentMetadata['File Information'] = {
+                        'File Name': file.name,
+                        'File Size': formatFileSize(file.size),
+                        'File Type': file.type,
+                        'MIME Type': file.type,
+                        'Last Modified': new Date(file.lastModified).toLocaleString(),
+                        'File Created': new Date(file.lastModified).toLocaleDateString()
+                    };
+
+                    // Date & Time (comprehensive)
+                    const dates = {};
+                    if (dateTime) dates['Date/Time'] = formatExifDate(dateTime);
+                    if (dateTimeOriginal) dates['Date Taken (Original)'] = formatExifDate(dateTimeOriginal);
+                    const dateTimeDigitized = EXIF.getTag(this, 'DateTimeDigitized') || allTags.DateTimeDigitized;
+                    if (dateTimeDigitized) dates['Date Digitized'] = formatExifDate(dateTimeDigitized);
+                    const subSecTime = EXIF.getTag(this, 'SubSecTime') || allTags.SubSecTime;
+                    if (subSecTime) dates['Sub-second Time'] = subSecTime;
+                    const subSecTimeOriginal = EXIF.getTag(this, 'SubSecTimeOriginal') || allTags.SubSecTimeOriginal;
+                    if (subSecTimeOriginal) dates['Sub-second Time (Original)'] = subSecTimeOriginal;
+                    const subSecTimeDigitized = EXIF.getTag(this, 'SubSecTimeDigitized') || allTags.SubSecTimeDigitized;
+                    if (subSecTimeDigitized) dates['Sub-second Time (Digitized)'] = subSecTimeDigitized;
+                    if (Object.keys(dates).length > 0) {
+                        currentMetadata['Date & Time Information'] = dates;
+                    }
+
+                    // Device/Camera Information (comprehensive) - Always show section
+                    const device = {};
+                    if (make) {
+                        device['Manufacturer'] = make;
+                    }
+                    if (model) {
+                        device['Device Model'] = model;
+                    }
+                    if (make && model) {
+                        device['Full Device Name'] = `${make} ${model}`;
+                    }
+                    if (software) {
+                        device['Software/Firmware'] = software;
+                    }
+                    const artist = EXIF.getTag(this, 'Artist') || allTags.Artist;
+                    if (artist) device['Artist/Photographer'] = artist;
+                    const copyright = EXIF.getTag(this, 'Copyright') || allTags.Copyright;
+                    if (copyright) device['Copyright'] = copyright;
+                    const imageDescription = EXIF.getTag(this, 'ImageDescription') || allTags.ImageDescription;
+                    if (imageDescription) device['Image Description'] = imageDescription;
+                    const documentName = EXIF.getTag(this, 'DocumentName') || allTags.DocumentName;
+                    if (documentName) device['Document Name'] = documentName;
+                    const hostComputer = EXIF.getTag(this, 'HostComputer') || allTags.HostComputer;
+                    if (hostComputer) device['Host Computer'] = hostComputer;
+                    const cameraOwnerName = EXIF.getTag(this, 'CameraOwnerName') || allTags.CameraOwnerName;
+                    if (cameraOwnerName) device['Camera Owner'] = cameraOwnerName;
+                    const bodySerialNumber = EXIF.getTag(this, 'BodySerialNumber') || allTags.BodySerialNumber;
+                    if (bodySerialNumber) device['Camera Serial Number'] = bodySerialNumber;
+                    const lensMake = EXIF.getTag(this, 'LensMake') || allTags.LensMake;
+                    if (lensMake) device['Lens Manufacturer'] = lensMake;
+                    const lensModel = EXIF.getTag(this, 'LensModel') || allTags.LensModel;
+                    if (lensModel) device['Lens Model'] = lensModel;
+                    const lensSerialNumber = EXIF.getTag(this, 'LensSerialNumber') || allTags.LensSerialNumber;
+                    if (lensSerialNumber) device['Lens Serial Number'] = lensSerialNumber;
+                    
+                    // Always add device section, even if empty (to show what's missing)
+                    currentMetadata['Device & Camera Information'] = device;
+                    if (Object.keys(device).length === 0) {
+                        device['⚠️ Status'] = 'No EXIF device information found.';
+                        device['Possible Reasons'] = 'Image may have been: processed/edited, compressed, uploaded to social media (Facebook/Instagram/Twitter strip EXIF), converted to different format, or taken with a device that doesn\'t embed EXIF data.';
+                        device['💡 Tip'] = 'Try using original photos directly from camera/phone (not downloaded from social media). JPEG files from cameras/phones typically contain EXIF data.';
+                    }
+
+                    // GPS/Location Data (comprehensive)
+                    const gps = {};
+                    if (gpsLat && gpsLon) {
+                        const lat = convertDMSToDD(gpsLat, gpsLatRef);
+                        const lon = convertDMSToDD(gpsLon, gpsLonRef);
+                        if (lat && lon) {
+                            gps['Latitude'] = lat + '°';
+                            gps['Longitude'] = lon + '°';
+                            gps['Coordinates'] = `${lat}, ${lon}`;
+                            gps['Google Maps'] = `https://www.google.com/maps?q=${lat},${lon}`;
+                            gps['OpenStreetMap'] = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15`;
+                            gps['Bing Maps'] = `https://www.bing.com/maps?cp=${lat}~${lon}&lvl=15`;
+                        }
+                    }
+                    const gpsAltitude = EXIF.getTag(this, 'GPSAltitude') || allTags.GPSAltitude;
+                    if (gpsAltitude) gps['Altitude'] = gpsAltitude + ' m';
+                    const gpsAltitudeRef = EXIF.getTag(this, 'GPSAltitudeRef') || allTags.GPSAltitudeRef;
+                    if (gpsAltitudeRef !== undefined) gps['Altitude Reference'] = gpsAltitudeRef === 0 ? 'Sea Level' : 'Below Sea Level';
+                    const gpsTimeStamp = EXIF.getTag(this, 'GPSTimeStamp') || allTags.GPSTimeStamp;
+                    if (gpsTimeStamp) gps['GPS Time'] = formatGPSTime(gpsTimeStamp);
+                    const gpsDateStamp = EXIF.getTag(this, 'GPSDateStamp') || allTags.GPSDateStamp;
+                    if (gpsDateStamp) gps['GPS Date'] = gpsDateStamp;
+                    const gpsSpeed = EXIF.getTag(this, 'GPSSpeed') || allTags.GPSSpeed;
+                    if (gpsSpeed) gps['GPS Speed'] = gpsSpeed + ' km/h';
+                    const gpsTrack = EXIF.getTag(this, 'GPSTrack') || allTags.GPSTrack;
+                    if (gpsTrack) gps['GPS Track'] = gpsTrack + '°';
+                    const gpsImgDirection = EXIF.getTag(this, 'GPSImgDirection') || allTags.GPSImgDirection;
+                    if (gpsImgDirection) gps['Image Direction'] = gpsImgDirection + '°';
+                    const gpsProcessingMethod = EXIF.getTag(this, 'GPSProcessingMethod') || allTags.GPSProcessingMethod;
+                    if (gpsProcessingMethod) gps['Processing Method'] = gpsProcessingMethod;
+                    const gpsAreaInformation = EXIF.getTag(this, 'GPSAreaInformation') || allTags.GPSAreaInformation;
+                    if (gpsAreaInformation) gps['Area Information'] = gpsAreaInformation;
+                    
+                    // Always add GPS section
+                    currentMetadata['GPS & Location Data'] = gps;
+                    if (Object.keys(gps).length === 0) {
+                        gps['⚠️ Status'] = 'No GPS/location data found in EXIF.';
+                        gps['Possible Reasons'] = 'Location services may have been disabled when photo was taken, GPS data was removed during editing/sharing, or device doesn\'t support GPS embedding.';
+                        gps['💡 Tip'] = 'Enable location services in camera app settings to embed GPS coordinates in photos.';
+                    }
+
+                    // Image Properties
+                    const imageProps = {};
+                    if (allTags.ImageWidth) imageProps['Width'] = allTags.ImageWidth + ' px';
+                    if (allTags.ImageLength) imageProps['Height'] = allTags.ImageLength + ' px';
+                    if (allTags.PixelXDimension) imageProps['Pixel X Dimension'] = allTags.PixelXDimension + ' px';
+                    if (allTags.PixelYDimension) imageProps['Pixel Y Dimension'] = allTags.PixelYDimension + ' px';
+                    if (allTags.Orientation) imageProps['Orientation'] = getOrientationName(allTags.Orientation);
+                    if (allTags.XResolution) imageProps['X Resolution'] = allTags.XResolution + ' dpi';
+                    if (allTags.YResolution) imageProps['Y Resolution'] = allTags.YResolution + ' dpi';
+                    if (allTags.ResolutionUnit) imageProps['Resolution Unit'] = allTags.ResolutionUnit === 2 ? 'Inches' : 'Centimeters';
+                    if (allTags.ColorSpace) imageProps['Color Space'] = allTags.ColorSpace === 1 ? 'sRGB' : 'Uncalibrated';
+                    if (allTags.Compression) imageProps['Compression'] = allTags.Compression;
+                    if (allTags.BitsPerSample) imageProps['Bits Per Sample'] = allTags.BitsPerSample;
+                    if (Object.keys(imageProps).length > 0) {
+                        currentMetadata['Image Properties'] = imageProps;
+                    }
+
+                    // Camera Settings (comprehensive) - Always show section
+                    const camera = {};
+                    if (iso) camera['ISO Speed'] = iso;
+                    if (exposureTime) camera['Exposure Time'] = exposureTime + ' sec';
+                    if (fNumber) camera['Aperture (F-Number)'] = 'f/' + fNumber;
+                    if (focalLength) camera['Focal Length'] = focalLength + ' mm';
+                    const focalLength35mm = EXIF.getTag(this, 'FocalLengthIn35mmFilm') || allTags.FocalLengthIn35mmFilm;
+                    if (focalLength35mm) camera['Focal Length (35mm)'] = focalLength35mm + ' mm';
+                    const flash = EXIF.getTag(this, 'Flash') || allTags.Flash;
+                    if (flash !== undefined) camera['Flash'] = getFlashInfo(flash);
+                    const whiteBalance = EXIF.getTag(this, 'WhiteBalance') || allTags.WhiteBalance;
+                    if (whiteBalance !== undefined) camera['White Balance'] = whiteBalance === 1 ? 'Auto' : 'Manual';
+                    const exposureMode = EXIF.getTag(this, 'ExposureMode') || allTags.ExposureMode;
+                    if (exposureMode !== undefined) camera['Exposure Mode'] = exposureMode === 0 ? 'Auto' : 'Manual';
+                    const exposureProgram = EXIF.getTag(this, 'ExposureProgram') || allTags.ExposureProgram;
+                    if (exposureProgram !== undefined) camera['Exposure Program'] = getExposureProgram(exposureProgram);
+                    const meteringMode = EXIF.getTag(this, 'MeteringMode') || allTags.MeteringMode;
+                    if (meteringMode !== undefined) camera['Metering Mode'] = getMeteringMode(meteringMode);
+                    const lightSource = EXIF.getTag(this, 'LightSource') || allTags.LightSource;
+                    if (lightSource !== undefined) camera['Light Source'] = getLightSource(lightSource);
+                    const saturation = EXIF.getTag(this, 'Saturation') || allTags.Saturation;
+                    if (saturation !== undefined) camera['Saturation'] = saturation === 0 ? 'Normal' : saturation === 1 ? 'Low' : 'High';
+                    const sharpness = EXIF.getTag(this, 'Sharpness') || allTags.Sharpness;
+                    if (sharpness !== undefined) camera['Sharpness'] = sharpness === 0 ? 'Normal' : sharpness === 1 ? 'Soft' : 'Hard';
+                    const contrast = EXIF.getTag(this, 'Contrast') || allTags.Contrast;
+                    if (contrast !== undefined) camera['Contrast'] = contrast === 0 ? 'Normal' : contrast === 1 ? 'Soft' : 'Hard';
+                    const digitalZoom = EXIF.getTag(this, 'DigitalZoomRatio') || allTags.DigitalZoomRatio;
+                    if (digitalZoom) camera['Digital Zoom'] = digitalZoom;
+                    const sceneCaptureType = EXIF.getTag(this, 'SceneCaptureType') || allTags.SceneCaptureType;
+                    if (sceneCaptureType !== undefined) camera['Scene Capture Type'] = getSceneCaptureType(sceneCaptureType);
+                    const brightness = EXIF.getTag(this, 'BrightnessValue') || allTags.BrightnessValue;
+                    if (brightness !== undefined) camera['Brightness Value'] = brightness;
+                    const exposureBias = EXIF.getTag(this, 'ExposureBiasValue') || allTags.ExposureBiasValue;
+                    if (exposureBias !== undefined) camera['Exposure Bias'] = exposureBias + ' EV';
+                    const maxAperture = EXIF.getTag(this, 'MaxApertureValue') || allTags.MaxApertureValue;
+                    if (maxAperture !== undefined) camera['Max Aperture'] = 'f/' + maxAperture;
+                    
+                    // Always add camera settings section
+                    currentMetadata['Camera Settings'] = camera;
+                    if (Object.keys(camera).length === 0) {
+                        camera['⚠️ Status'] = 'No camera settings found in EXIF data.';
+                        camera['Possible Reasons'] = 'EXIF data was stripped during processing, image was taken with a device that doesn\'t embed camera settings, or image format doesn\'t support EXIF (some PNG/WebP).';
+                        camera['💡 Tip'] = 'Original JPEG files from cameras/phones usually contain camera settings. RAW files contain the most metadata.';
+                    }
+
+                    // Raw EXIF Data Dump (for debugging and complete view)
+                    const rawExif = {};
+                    Object.keys(allTags).forEach(key => {
+                        if (allTags[key] !== undefined && allTags[key] !== null) {
+                            let value = allTags[key];
+                            if (Array.isArray(value)) {
+                                value = value.join(', ');
+                            }
+                            rawExif[key] = String(value);
+                        }
+                    });
+                    
+                    // Also get all available EXIF tags using direct access
+                    const commonTags = ['Make', 'Model', 'Software', 'DateTime', 'DateTimeOriginal', 'DateTimeDigitized',
+                                      'Artist', 'Copyright', 'ImageDescription', 'Orientation', 'XResolution', 'YResolution',
+                                      'ResolutionUnit', 'ColorSpace', 'Compression', 'ISOSpeedRatings', 'ExposureTime',
+                                      'FNumber', 'ExposureProgram', 'ExposureMode', 'FocalLength', 'FocalLengthIn35mmFilm',
+                                      'Flash', 'WhiteBalance', 'MeteringMode', 'LightSource', 'Saturation', 'Sharpness',
+                                      'Contrast', 'DigitalZoomRatio', 'SceneCaptureType', 'BrightnessValue', 'ExposureBiasValue',
+                                      'MaxApertureValue', 'GPSLatitude', 'GPSLongitude', 'GPSLatitudeRef', 'GPSLongitudeRef',
+                                      'GPSAltitude', 'GPSAltitudeRef', 'GPSTimeStamp', 'GPSDateStamp', 'GPSSpeed', 'GPSTrack',
+                                      'GPSImgDirection', 'GPSProcessingMethod', 'GPSAreaInformation', 'CameraOwnerName',
+                                      'BodySerialNumber', 'LensMake', 'LensModel', 'LensSerialNumber'];
+                    
+                    const directTags = {};
+                    commonTags.forEach(tag => {
+                        const value = EXIF.getTag(this, tag);
+                        if (value !== undefined && value !== null) {
+                            directTags[tag] = value;
+                        }
+                    });
+                    
+                    if (Object.keys(rawExif).length > 0) {
+                        currentMetadata['Raw EXIF Data (All Tags)'] = rawExif;
+                    }
+                    
+                    if (Object.keys(directTags).length > 0) {
+                        currentMetadata['Direct EXIF Tags'] = directTags;
+                    }
+
+                    resolve();
+                });
+            });
+        }
+
+        function extractImageProperties(img, file) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            
+            // Calculate image statistics
+            let rSum = 0, gSum = 0, bSum = 0;
+            for (let i = 0; i < pixels.length; i += 4) {
+                rSum += pixels[i];
+                gSum += pixels[i + 1];
+                bSum += pixels[i + 2];
+            }
+            const pixelCount = pixels.length / 4;
+            const avgR = Math.round(rSum / pixelCount);
+            const avgG = Math.round(gSum / pixelCount);
+            const avgB = Math.round(bSum / pixelCount);
+            
+            currentMetadata['Image Analysis'] = {
+                'Display Width': img.width + ' px',
+                'Display Height': img.height + ' px',
+                'Aspect Ratio': (img.width / img.height).toFixed(2),
+                'Total Pixels': (img.width * img.height).toLocaleString(),
+                'Average Color (RGB)': `rgb(${avgR}, ${avgG}, ${avgB})`,
+                'Average Color (Hex)': rgbToHex(avgR, avgG, avgB),
+                'File Format': file.type.split('/')[1].toUpperCase(),
+                'Natural Dimensions': `${img.naturalWidth} × ${img.naturalHeight} px`
+            };
+        }
+
+        function generateReverseImageLinks() {
+            if (!imageDataUrl) return;
+            
+            // Convert to blob for upload
+            const links = {
+                'Google Reverse Image Search': `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(imageDataUrl)}`,
+                'TinEye Reverse Search': 'https://tineye.com/',
+                'Yandex Image Search': 'https://yandex.com/images/',
+                'Bing Visual Search': 'https://www.bing.com/visualsearch',
+                'Note': 'Upload the image manually to these services for reverse search'
+            };
+            
+            currentMetadata['Reverse Image Search Links'] = links;
+        }
+
+        function analyzeImageForensics(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            const forensics = {};
+            
+            // Check for potential editing
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // Analyze pixel patterns
+            let uniformAreas = 0;
+            let totalPixels = 0;
+            let rSum = 0, gSum = 0, bSum = 0;
+            let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
+            
+            for (let i = 0; i < data.length; i += 16) {
+                totalPixels++;
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
+                rSum += r;
+                gSum += g;
+                bSum += b;
+                
+                minR = Math.min(minR, r);
+                maxR = Math.max(maxR, r);
+                minG = Math.min(minG, g);
+                maxG = Math.max(maxG, g);
+                minB = Math.min(minB, b);
+                maxB = Math.max(maxB, b);
+                
+                // Check if surrounding pixels are similar (potential clone stamp)
+                if (i + 16 < data.length) {
+                    const nextR = data[i + 16];
+                    const nextG = data[i + 17];
+                    const nextB = data[i + 18];
+                    if (Math.abs(r - nextR) < 5 && Math.abs(g - nextG) < 5 && Math.abs(b - nextB) < 5) {
+                        uniformAreas++;
+                    }
+                }
+            }
+            
+            const avgR = Math.round(rSum / totalPixels);
+            const avgG = Math.round(gSum / totalPixels);
+            const avgB = Math.round(bSum / totalPixels);
+            
+            forensics['Image Dimensions'] = `${canvas.width} × ${canvas.height} px`;
+            forensics['Canvas Size'] = `${(canvas.width * canvas.height).toLocaleString()} pixels`;
+            forensics['Color Range (R)'] = `${minR} - ${maxR} (avg: ${avgR})`;
+            forensics['Color Range (G)'] = `${minG} - ${maxG} (avg: ${avgG})`;
+            forensics['Color Range (B)'] = `${minB} - ${maxB} (avg: ${avgB})`;
+            forensics['Uniformity Score'] = ((uniformAreas / totalPixels) * 100).toFixed(2) + '%';
+            forensics['Potential Editing'] = (uniformAreas / totalPixels) > 0.3 ? '⚠️ Possible (high uniformity detected - may indicate cloning/editing)' : '✓ Unlikely (natural variation detected)';
+            forensics['Color Channels'] = 'RGBA (Red, Green, Blue, Alpha)';
+            forensics['Color Depth'] = '8 bits per channel (24-bit color)';
+            
+            // Check for common image characteristics
+            const aspectRatio = canvas.width / canvas.height;
+            if (Math.abs(aspectRatio - 16/9) < 0.01) forensics['Aspect Ratio'] = '16:9 (Common for screenshots/videos)';
+            else if (Math.abs(aspectRatio - 4/3) < 0.01) forensics['Aspect Ratio'] = '4:3 (Common for cameras)';
+            else if (Math.abs(aspectRatio - 1) < 0.01) forensics['Aspect Ratio'] = '1:1 (Square - common for social media)';
+            else forensics['Aspect Ratio'] = aspectRatio.toFixed(2) + ':1';
+            
+            currentMetadata['Image Forensics & Analysis'] = forensics;
+        }
+
+        // Helper functions
+        function convertDMSToDD(dms, ref) {
+            if (!dms || !Array.isArray(dms)) return null;
+            let dd = dms[0] + dms[1]/60 + dms[2]/(60*60);
+            if (ref === 'S' || ref === 'W') {
+                dd = dd * -1;
+            }
+            return dd.toFixed(6);
+        }
+
+        function formatExifDate(dateString) {
+            if (!dateString) return null;
+            const parts = dateString.split(' ');
+            if (parts.length < 2) return dateString;
+            const date = parts[0].replace(/:/g, '-');
+            const time = parts[1];
+            try {
+                return new Date(date + 'T' + time).toLocaleString();
+            } catch {
+                return dateString;
+            }
+        }
+
+        function formatGPSTime(timeStamp) {
+            if (!timeStamp || !Array.isArray(timeStamp)) return null;
+            return `${timeStamp[0]}:${timeStamp[1]}:${timeStamp[2]}`;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function getOrientationName(orientation) {
+            const orientations = {
+                1: 'Normal (0°)',
+                2: 'Mirrored',
+                3: 'Rotated 180°',
+                4: 'Flipped',
+                5: 'Rotated 90° CCW + Mirrored',
+                6: 'Rotated 90° CW',
+                7: 'Rotated 90° CW + Mirrored',
+                8: 'Rotated 90° CCW'
+            };
+            return orientations[orientation] || `Orientation ${orientation}`;
+        }
+
+        function getFlashInfo(flash) {
+            const flashModes = {
+                0x00: 'No Flash',
+                0x01: 'Fired',
+                0x05: 'Fired, Return not detected',
+                0x07: 'Fired, Return detected',
+                0x08: 'On, Did not fire',
+                0x09: 'On, Fired',
+                0x0D: 'On, Return not detected',
+                0x0F: 'On, Return detected',
+                0x10: 'Off, Did not fire',
+                0x18: 'Auto, Did not fire',
+                0x19: 'Auto, Fired',
+                0x1D: 'Auto, Fired, Return not detected',
+                0x1F: 'Auto, Fired, Return detected',
+                0x20: 'No flash function',
+                0x41: 'Fired, Red-eye reduction',
+                0x45: 'Fired, Red-eye reduction, Return not detected',
+                0x47: 'Fired, Red-eye reduction, Return detected',
+                0x49: 'On, Red-eye reduction',
+                0x4D: 'On, Red-eye reduction, Return not detected',
+                0x4F: 'On, Red-eye reduction, Return detected',
+                0x59: 'Auto, Fired, Red-eye reduction',
+                0x5D: 'Auto, Fired, Red-eye reduction, Return not detected',
+                0x5F: 'Auto, Fired, Red-eye reduction, Return detected'
+            };
+            return flashModes[flash] || `Flash Mode ${flash}`;
+        }
+
+        function getExposureProgram(program) {
+            const programs = {
+                0: 'Not defined',
+                1: 'Manual',
+                2: 'Program AE',
+                3: 'Aperture-priority AE',
+                4: 'Shutter speed priority AE',
+                5: 'Creative (slow speed)',
+                6: 'Action (high speed)',
+                7: 'Portrait',
+                8: 'Landscape'
+            };
+            return programs[program] || `Program ${program}`;
+        }
+
+        function getMeteringMode(mode) {
+            const modes = {
+                0: 'Unknown',
+                1: 'Average',
+                2: 'Center-weighted average',
+                3: 'Spot',
+                4: 'Multi-spot',
+                5: 'Multi-segment',
+                6: 'Partial'
+            };
+            return modes[mode] || `Mode ${mode}`;
+        }
+
+        function getLightSource(source) {
+            const sources = {
+                0: 'Unknown',
+                1: 'Daylight',
+                2: 'Fluorescent',
+                3: 'Tungsten',
+                4: 'Flash',
+                9: 'Fine weather',
+                10: 'Cloudy weather',
+                11: 'Shade',
+                12: 'Daylight fluorescent',
+                13: 'Day white fluorescent',
+                14: 'Cool white fluorescent',
+                15: 'White fluorescent',
+                17: 'Standard light A',
+                18: 'Standard light B',
+                19: 'Standard light C',
+                20: 'D55',
+                21: 'D65',
+                22: 'D75',
+                24: 'ISO studio tungsten'
+            };
+            return sources[source] || `Source ${source}`;
+        }
+
+        function getSceneCaptureType(type) {
+            const types = {
+                0: 'Standard',
+                1: 'Landscape',
+                2: 'Portrait',
+                3: 'Night scene'
+            };
+            return types[type] || `Type ${type}`;
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        function displayMetadata(metadata) {
+            const container = document.getElementById('metadataContainer');
+            container.innerHTML = '';
+
+            Object.keys(metadata).forEach(groupName => {
+                const groupData = metadata[groupName];
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'mb-6';
+                groupDiv.innerHTML = `<h3 class="text-white font-bold text-sm mb-3 uppercase tracking-wide border-b border-white/10 pb-2">${groupName}</h3>`;
+
+                if (typeof groupData === 'object' && !Array.isArray(groupData)) {
+                    Object.keys(groupData).forEach(key => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'metadata-item';
+                        
+                        let value = groupData[key];
+                        if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                            value = `<a href="${value}" target="_blank" class="text-red-500 hover:text-red-400 underline">${value}</a>`;
+                        }
+                        
+                        itemDiv.innerHTML = `
+                            <div class="metadata-label">${key}</div>
+                            <div class="metadata-value">${value}</div>
+                        `;
+                        groupDiv.appendChild(itemDiv);
+                    });
+                } else {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'metadata-item';
+                    itemDiv.innerHTML = `
+                        <div class="metadata-label">${groupName}</div>
+                        <div class="metadata-value">${groupData}</div>
+                    `;
+                    groupDiv.appendChild(itemDiv);
+                }
+
+                container.appendChild(groupDiv);
+            });
+        }
+
+        function exportMetadata() {
+            const dataStr = JSON.stringify(currentMetadata, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'image-metadata-complete.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = message;
+            errorBox.classList.remove('hidden');
+            setTimeout(() => {
+                errorBox.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

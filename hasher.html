@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Generator - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            padding: 40px 20px;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        textarea {
+            font-family: 'JetBrains Mono', monospace;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .hash-result {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .hash-result:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .hash-label {
+            color: #ff3b30;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .hash-value {
+            color: #d1d1d6;
+            word-break: break-all;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark uppercase">Hasher</div>
+
+    <div class="container">
+        <header class="mb-12 border-b border-white/10 pb-8">
+            <h1 class="text-5xl font-light text-white mb-2">
+                <span class="highlight-letter">H</span>ash <span class="highlight-letter">G</span>enerator
+            </h1>
+            <p class="text-sm text-gray-400 italic">Cryptographic hash function generator</p>
+        </header>
+
+        <div class="professional-border p-8 mb-8">
+            <div class="status-header p-4 mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">Tool Status</h3>
+                <p class="text-xl font-bold text-white uppercase italic">Operational</p>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
+                    Input Text
+                </label>
+                <textarea id="inputText" placeholder="Enter text to hash..."></textarea>
+            </div>
+
+            <button onclick="generateHashes()" class="btn-primary w-full mb-6">Generate Hashes</button>
+
+            <div id="hashResults"></div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-white/10 flex justify-between items-center opacity-30">
+            <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+            <div class="text-sm font-bold tracking-[0.8em]">
+                <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+            </div>
+            <a href="mainpage.html" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
+        </footer>
+    </div>
+
+    <script>
+        async function generateHashes() {
+            const input = document.getElementById('inputText').value;
+            const resultsDiv = document.getElementById('hashResults');
+
+            if (!input.trim()) {
+                resultsDiv.innerHTML = '<div class="hash-result"><div class="hash-label">⚠️ Error</div><div class="hash-value">Please enter text to hash</div></div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="hash-result"><div class="hash-label">Processing...</div><div class="hash-value">Generating hashes...</div></div>';
+
+            const encoder = new TextEncoder();
+            const data = encoder.encode(input);
+
+            const hashes = [];
+
+            // SHA-256
+            try {
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                hashes.push({ name: 'SHA-256', value: hashHex });
+            } catch (e) {
+                hashes.push({ name: 'SHA-256', value: 'Error: ' + e.message });
+            }
+
+            // SHA-384
+            try {
+                const hashBuffer = await crypto.subtle.digest('SHA-384', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                hashes.push({ name: 'SHA-384', value: hashHex });
+            } catch (e) {
+                hashes.push({ name: 'SHA-384', value: 'Error: ' + e.message });
+            }
+
+            // SHA-512
+            try {
+                const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                hashes.push({ name: 'SHA-512', value: hashHex });
+            } catch (e) {
+                hashes.push({ name: 'SHA-512', value: 'Error: ' + e.message });
+            }
+
+            // SHA-1 (using Web Crypto if available, otherwise fallback)
+            try {
+                const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                hashes.push({ name: 'SHA-1', value: hashHex });
+            } catch (e) {
+                hashes.push({ name: 'SHA-1', value: 'Error: ' + e.message });
+            }
+
+            // Display results
+            let html = '';
+            hashes.forEach(hash => {
+                html += `
+                    <div class="hash-result" onclick="copyHash('${hash.value}')" style="cursor: pointer;" title="Click to copy">
+                        <div class="hash-label">${hash.name}</div>
+                        <div class="hash-value">${hash.value}</div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function copyHash(hash) {
+            navigator.clipboard.writeText(hash).then(() => {
+                // Visual feedback
+                event.target.closest('.hash-result').style.borderColor = '#30d158';
+                setTimeout(() => {
+                    event.target.closest('.hash-result').style.borderColor = '';
+                }, 1000);
+            });
+        }
+
+        // Auto-generate on input (with debounce)
+        let debounceTimer;
+        document.getElementById('inputText').addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                if (this.value.trim()) {
+                    generateHashes();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+

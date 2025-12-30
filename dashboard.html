@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLASSIFIED - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Playfair+Display:ital,wght@1,700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .professional-border:hover {
+            border-color: rgba(255, 59, 48, 0.3);
+            box-shadow: 0 0 30px rgba(255, 59, 48, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tool-card {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .tool-card.locked {
+            border-color: rgba(255, 59, 48, 0.2);
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 59, 48, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        /* STATUS BADGES */
+        .badge-base {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-active {
+            background: rgba(48, 209, 88, 0.15);
+            border: 1px solid rgba(48, 209, 88, 0.4);
+            color: #30d158;
+        }
+
+        .badge-restricted {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+        }
+        
+        .badge-loading {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+            animation: pulse 2s infinite;
+        }
+
+        /* ICON STYLES */
+        .tool-icon {
+            width: 32px;
+            height: 32px;
+            color: #666;
+            transition: color 0.3s;
+        }
+        
+        .tool-card:hover .tool-icon {
+            color: #fff;
+        }
+
+        .mysterious-btn {
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mysterious-btn:hover {
+            border-color: #ff3b30;
+            box-shadow: 0 0 30px rgba(255, 59, 48, 0.3);
+        }
+
+        .glitch {
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* --- SUBSCRIPTION LIST --- */
+        .sub-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 8px 0;
+            font-size: 0.75rem;
+        }
+        .sub-name { color: #fff; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .sub-timer { font-family: 'JetBrains Mono', monospace; color: #30d158; }
+        .sub-timer.expired { color: #ff3b30; }
+
+        /* --- STORE FOOTER IN CARDS --- */
+        .store-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: none; /* Hidden by default */
+        }
+        .store-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .store-price { color: #fff; font-weight: bold; }
+        .store-stock { color: #ff3b30; }
+        
+        .buy-btn {
+            width: 100%;
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .buy-btn:hover {
+            background: #ff3b30;
+            color: #000;
+        }
+        .buy-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #333;
+            border-color: #555;
+            color: #888;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .plan-option {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .plan-option:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: #ff3b30;
+        }
+        .plan-option.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-16 min-h-screen">
+    <div class="watermark uppercase">Ghost Arsenal</div>
+
+    <div id="purchaseModal" class="modal">
+        <div class="bg-[#0a0a0c] border border-gray-800 p-8 rounded-sm max-w-md w-full relative">
+            <h3 id="modalToolTitle" class="text-xl font-bold text-white mb-2 uppercase tracking-widest">SELECT PLAN</h3>
+            <p class="text-xs text-gray-500 mb-6 uppercase">Choose your subscription tier</p>
+            
+            <div id="modalPlanList" class="flex flex-col gap-2">
+                </div>
+
+            <button onclick="closeModal()" class="mt-6 w-full text-xs text-gray-400 hover:text-white uppercase tracking-widest py-3 border-t border-gray-800">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <header class="relative z-10 max-w-6xl mx-auto mb-16">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-white/10 pb-8">
+            <div>
+                <h4 class="text-xs uppercase tracking-[0.4em] text-gray-500 mb-2 font-bold">Private Arsenal // Tier-0 Access Only</h4>
+                <h1 class="text-5xl md:text-7xl font-light tracking-tight text-white">
+                    <span class="highlight-letter text-6xl md:text-8xl">X</span>elude<span class="highlight-letter text-6xl md:text-8xl">D</span>
+                </h1>
+                <p class="text-sm text-gray-400 mt-2 italic">The Ghost Founder's Catalogue</p>
+            </div>
+            <div class="mt-6 md:mt-0 text-right">
+                <p class="text-xs font-mono text-gray-400">Archive ID: GF-MAIN-001</p>
+                <p id="userEmailDisplay" class="text-xs font-mono text-white mt-1">USER: verifying...</p>
+                <button id="logoutBtn" class="mt-2 text-[10px] text-gray-600 hover:text-red-500 uppercase tracking-widest border border-gray-800 px-2 py-1 rounded hover:border-red-900 transition">
+                    Terminate Session
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10 max-w-6xl mx-auto">
+        
+        <div class="status-header p-6 mb-12 rounded-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-start">
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">System Status</h3>
+                    <p class="text-2xl font-bold text-white uppercase italic">Operational</p>
+                </div>
+                <div class="mt-4 md:mt-0 w-full md:w-1/2">
+                    <p class="text-xs text-gray-400 mb-2 uppercase tracking-wider text-right">Active Subscriptions</p>
+                    <div id="activeSubsList" class="bg-black/30 p-3 rounded border border-white/5 min-h-[60px]">
+                        <p class="text-[10px] text-gray-600 italic text-center pt-2">Scanning entitlements...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-8 flex items-center">
+                <span class="w-8 h-[1px] bg-white mr-4"></span>
+                Available Arsenal
+            </h2>
+
+            <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div id="card_encryptor_ral" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_encryptor_ral" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">Encryptor RAL</h3>
+                        <p class="text-gray-400 text-sm mb-4">Non-linear encryption system.</p>
+                    </div>
+                    <div id="store_encryptor_ral" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('encryptor_ral')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_db_scan" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_db_scan" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">XELUDED D/B SC^N</h3>
+                        <p class="text-gray-400 text-sm mb-4">Advanced schema enumeration module.</p>
+                    </div>
+                    <div id="store_db_scan" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('db_scan')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_encoder" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_encoder" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">Encoder / Decoder</h3>
+                        <p class="text-gray-400 text-sm mb-4">Multi-format encoding tool.</p>
+                    </div>
+                    <div id="store_encoder" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('encoder')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_hash_cracker" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_hash_cracker" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">Hash Cracker</h3>
+                        <p class="text-gray-400 text-sm mb-4">Advanced hash generator.</p>
+                    </div>
+                    <div id="store_hash_cracker" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('hash_cracker')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_pass_gen" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_pass_gen" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">Password Generator</h3>
+                        <p class="text-gray-400 text-sm mb-4">Secure random password generator.</p>
+                    </div>
+                    <div id="store_pass_gen" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('pass_gen')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_port_scan" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_port_scan" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">Port Scanner X</h3>
+                        <p class="text-gray-400 text-sm mb-4">Stealth network reconnaissance tool.</p>
+                    </div>
+                    <div id="store_port_scan" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('port_scan')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_rf_analyzer" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_rf_analyzer" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">RF Analyzer</h3>
+                        <p class="text-gray-400 text-sm mb-4">Radio frequency analysis tool.</p>
+                    </div>
+                    <div id="store_rf_analyzer" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('rf_analyzer')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+                <div id="card_wallet_finder" class="tool-card professional-border p-6 rounded-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div id="badge_wallet_finder" class="badge-base badge-loading">SCANNING...</div>
+                            <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2 uppercase tracking-wide">Wallet Finder</h3>
+                        <p class="text-gray-400 text-sm mb-4">Generate seed phrases and check balances.</p>
+                    </div>
+                    <div id="store_wallet_finder" class="store-footer">
+                        <div class="store-stats">
+                            <span class="store-price">PLANS AVAILABLE</span>
+                            <span class="store-stock">CHECK STOCK</span>
+                        </div>
+                        <button onclick="openPlanSelector('wallet_finder')" class="buy-btn">VIEW PLANS</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <div class="professional-border p-8 rounded-sm text-center">
+                <div class="mb-6">
+                    <div class="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white/20 flex items-center justify-center text-4xl glitch">👤</div>
+                    <h3 id="profileName" class="text-2xl font-bold text-white mb-2 uppercase tracking-widest">
+                        <span class="animate-pulse">LOADING...</span>
+                    </h3>
+                    <p id="profileIdentity" class="text-gray-500 text-sm uppercase tracking-wider">Identity: Verifying Access...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, get, update } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIrktFBxhqmO_nYfaVLygOy_hj0jEQ1f8",
+            authDomain: "toolhb-8f959.firebaseapp.com",
+            databaseURL: "https://toolhb-8f959-default-rtdb.firebaseio.com",
+            projectId: "toolhb-8f959",
+            storageBucket: "toolhb-8f959.firebasestorage.app",
+            messagingSenderId: "390399955912",
+            appId: "1:390399955912:web:ff93435c9e6c9ff0fc66fd",
+            measurementId: "G-WTKQE4R2EK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Global Variables
+        let globalToolAccess = {};
+        let globalStoreConfig = {};
+        let currentUserUid = null;
+        let subscriptionIntervals = [];
+
+        const toolKeys = [
+            'encryptor_ral', 'db_scan', 'encoder', 'hash_cracker', 
+            'pass_gen', 'port_scan', 'rf_analyzer', 'wallet_finder'
+        ];
+
+        // --- AUTH & MAIN LOGIC ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserUid = user.uid;
+                
+                // 1. Initialize Store Data (Optional helper)
+                initStoreData();
+
+                // 2. Fetch User Data
+                const userRef = ref(db, 'users/' + currentUserUid);
+                onValue(userRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        updateProfileUI(data);
+                        globalToolAccess = data.tool_access || {};
+                        // Timers
+                        handleSubscriptions(currentUserUid, globalToolAccess, data.tool_expiry || {});
+                        // Update Badges
+                        updateToolUI(); 
+                    }
+                });
+
+                // 3. Fetch Store Config (Prices/Stock)
+                const storeRef = ref(db, 'store_config');
+                onValue(storeRef, (snapshot) => {
+                    globalStoreConfig = snapshot.val() || {};
+                    updateToolUI(); // Update UI when stock/prices change
+                });
+
+            } else {
+                window.location.href = "index.html"; 
+            }
+        });
+
+        // --- HELPER: INITIALIZE STORE DATA (MATCHING JSON STRUCTURE) ---
+        async function initStoreData() {
+            // Helper to ensure structure exists if DB is empty
+            const storeRef = ref(db, 'store_config');
+            const snapshot = await get(storeRef);
+            // This function is kept for safety, but JSON import handles data.
+        }
+
+        // --- UI UPDATERS ---
+        function updateProfileUI(data) {
+            const profileNameEl = document.getElementById('profileName');
+            const profileIdentityEl = document.getElementById('profileIdentity');
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+
+            if(data.name) {
+                profileNameEl.innerHTML = `<span class="highlight-letter">${data.name.charAt(0)}</span>${data.name.slice(1)}`;
+                profileIdentityEl.textContent = `Identity: Verified // ${data.name.toUpperCase()}`;
+            }
+            if(data.email) userEmailDisplay.innerHTML = `USER: <span class="text-white">${data.email}</span>`;
+        }
+
+        function updateToolUI() {
+            toolKeys.forEach(key => {
+                const badgeEl = document.getElementById(`badge_${key}`);
+                const cardEl = document.getElementById(`card_${key}`);
+                const storeFooter = document.getElementById(`store_${key}`);
+                const isAuthorized = globalToolAccess[key] === true;
+                const toolConfig = globalStoreConfig[key] || {};
+                const plans = toolConfig.plans || {};
+
+                // 1. Badge Logic
+                if (isAuthorized) {
+                    badgeEl.textContent = "AUTHORIZED";
+                    badgeEl.className = "badge-base badge-active";
+                    cardEl.classList.remove('locked');
+                    storeFooter.style.display = "none"; // Hide buy options if owned
+                    
+                    // Enable Click
+                    cardEl.onclick = function() { window.location.href = getToolUrl(key); };
+                } else {
+                    badgeEl.textContent = "RESTRICTED";
+                    badgeEl.className = "badge-base badge-restricted";
+                    cardEl.classList.add('locked');
+                    storeFooter.style.display = "block"; // Show buy options
+                    
+                    // Disable Card Click (Button handles action)
+                    cardEl.onclick = null;
+
+                    // Update Footer Info - MODIFIED FOR PLANS
+                    const priceEl = storeFooter.querySelector('.store-price');
+                    const stockEl = storeFooter.querySelector('.store-stock');
+                    const buyBtn = storeFooter.querySelector('.buy-btn');
+
+                    // Check if any plan has stock
+                    let hasStock = false;
+                    for (let pid in plans) {
+                        if (plans[pid].stock > 0) hasStock = true;
+                    }
+
+                    priceEl.textContent = `SELECT PLAN`;
+                    
+                    if (!hasStock) {
+                        stockEl.textContent = "OUT OF STOCK";
+                        buyBtn.textContent = "UNAVAILABLE";
+                        buyBtn.disabled = true;
+                    } else {
+                        stockEl.textContent = "AVAILABLE";
+                        buyBtn.textContent = `VIEW PLANS`;
+                        buyBtn.disabled = false;
+                        // Attach Modal Open Function
+                        buyBtn.onclick = function(e) {
+                            e.stopPropagation(); // Prevent card click
+                            openPlanSelector(key);
+                        };
+                    }
+                }
+            });
+        }
+
+        function getToolUrl(key) {
+            const map = {
+                'encryptor_ral': 'enc.html',
+                'db_scan': 'dbscan.html',
+                'encoder': 'encoder.html',
+                'hash_cracker': 'hasher.html',
+                'pass_gen': 'passwordgen.html',
+                'port_scan': 'portscan.html',
+                'rf_analyzer': 'rf.html',
+                'wallet_finder': 'walletfinder.html'
+            };
+            return map[key] || '#';
+        }
+
+        // --- PLAN SELECTION & BUY LOGIC (MODIFIED) ---
+        
+        // Expose to window for HTML onclick
+        window.openPlanSelector = function(toolKey) {
+            const toolConfig = globalStoreConfig[toolKey];
+            if (!toolConfig || !toolConfig.plans) return;
+
+            const plans = toolConfig.plans;
+            const modal = document.getElementById('purchaseModal');
+            const list = document.getElementById('modalPlanList');
+            const title = document.getElementById('modalToolTitle');
+
+            title.innerText = toolKey.replace('_', ' ').toUpperCase();
+            list.innerHTML = ''; // Clear old
+
+            // Sort plans naturally or by price if needed
+            Object.keys(plans).forEach(planId => {
+                const p = plans[planId];
+                const div = document.createElement('div');
+                
+                const isOutOfStock = p.stock <= 0;
+                div.className = `plan-option ${isOutOfStock ? 'disabled' : ''}`;
+                
+                div.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-white font-bold text-sm">${p.label || planId}</span>
+                        <span class="text-[10px] text-gray-500">${p.days} Days Access</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[#30d158] font-mono font-bold block">$${p.price}</span>
+                        <span class="text-[9px] ${isOutOfStock ? 'text-red-500' : 'text-gray-600'} block">
+                            ${isOutOfStock ? 'SOLD OUT' : p.stock + ' LEFT'}
+                        </span>
+                    </div>
+                `;
+
+                if(!isOutOfStock) {
+                    div.onclick = () => executePurchase(toolKey, planId);
+                }
+
+                list.appendChild(div);
+            });
+
+            modal.classList.add('active');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('purchaseModal').classList.remove('active');
+        }
+
+        // Execute Purchase based on Specific Plan ID
+        window.executePurchase = async function(toolKey, planId) {
+            const planRef = ref(db, `store_config/${toolKey}/plans/${planId}`);
+            const snapshot = await get(planRef);
+            
+            if (!snapshot.exists()) {
+                alert("Error: Plan not found.");
+                return;
+            }
+
+            const planData = snapshot.val();
+            const label = planData.label || planId;
+
+            if (!confirm(`Confirm purchase: ${toolKey.toUpperCase()} - ${label} for $${planData.price}?`)) return;
+
+            if (planData.stock > 0) {
+                try {
+                    // 1. Deduct Stock for specific plan
+                    await update(planRef, { stock: planData.stock - 1 });
+
+                    // 2. Grant Access
+                    // Calculate Expiry
+                    const validityMs = (planData.days || 30) * 24 * 60 * 60 * 1000;
+                    const expiryDate = Date.now() + validityMs;
+
+                    // Update User
+                    await update(ref(db, `users/${currentUserUid}/tool_access`), { [toolKey]: true });
+                    await update(ref(db, `users/${currentUserUid}/tool_expiry`), { [toolKey]: expiryDate });
+
+                    closeModal();
+                    alert("Purchase Successful. System Unlocked.");
+                } catch (e) {
+                    console.error(e);
+                    alert("Transaction Failed: Network Error.");
+                }
+            } else {
+                alert("Transaction Failed: Out of Stock.");
+            }
+        }
+
+        // --- SUBSCRIPTION TIMERS ---
+        function handleSubscriptions(uid, toolAccess, toolExpiry) {
+            const activeSubsList = document.getElementById('activeSubsList');
+            subscriptionIntervals.forEach(clearInterval);
+            subscriptionIntervals = [];
+            activeSubsList.innerHTML = '';
+
+            let hasActiveTools = false;
+
+            for (const [toolName, isActive] of Object.entries(toolAccess)) {
+                if (isActive === true) {
+                    hasActiveTools = true;
+
+                    // Ensure expiry exists
+                    if (!toolExpiry[toolName]) {
+                         // Default fallback if no expiry found
+                        set(ref(db, `users/${uid}/tool_expiry/${toolName}`), Date.now() + (30*24*60*60*1000));
+                        return; 
+                    }
+
+                    const subItem = document.createElement('div');
+                    subItem.className = 'sub-item';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'sub-name';
+                    nameSpan.innerText = toolName.replace('_', ' '); 
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'sub-timer';
+                    timeSpan.innerText = "Calculing...";
+
+                    subItem.appendChild(nameSpan);
+                    subItem.appendChild(timeSpan);
+                    activeSubsList.appendChild(subItem);
+
+                    const expiryTime = toolExpiry[toolName];
+                    const interval = setInterval(() => {
+                        const now = Date.now();
+                        const distance = expiryTime - now;
+
+                        if (distance < 0) {
+                            timeSpan.innerText = "EXPIRED";
+                            timeSpan.classList.add('expired');
+                        } else {
+                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                            
+                            if (days > 0) timeSpan.innerText = `${days}d ${hours}h`;
+                            else timeSpan.innerText = `${hours}h ${minutes}m`;
+                        }
+                    }, 1000);
+                    subscriptionIntervals.push(interval);
+                }
+            }
+
+            if (!hasActiveTools) {
+                activeSubsList.innerHTML = '<p class="text-[10px] text-gray-600 text-center pt-2">No active subscriptions.</p>';
+            }
+        }
+
+        // --- LOGOUT ---
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => { window.location.href = "index.html"; });
+        });
+    </script>
+</body>
+</html>

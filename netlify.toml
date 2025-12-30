@@ -1,0 +1,29 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# IMPORTANT: API route must come BEFORE the catch-all
+# Route API requests to serverless function
+[[redirects]]
+  from = "/api/search"
+  to = "/.netlify/functions/api_search"
+  status = 200
+  force = true
+
+# Serve index.html at root
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+# Serve search.html from INTsrc folder
+[[redirects]]
+  from = "/INTsrc/search.html"
+  to = "/INTsrc/search.html"
+  status = 200
+
+# Catch-all for other routes (must be last)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

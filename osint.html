@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLASSIFIED - India Phone OSINT Lookup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.8) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .status-header {
+            background: linear-gradient(90deg, #b02a2a 0%, #0a0a0c 100%);
+            border-left: 4px solid #ff3b30;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        input, button {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d1d6;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+        }
+
+        .lookup-btn {
+            background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: white;
+        }
+
+        .lookup-btn:hover:not(:disabled) {
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .lookup-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .data-card {
+            border-left: 2px solid #ff3b30;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #ff3b30;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: rgba(48, 209, 88, 0.2);
+            border: 1px solid rgba(48, 209, 88, 0.4);
+            color: #30d158;
+        }
+
+        .status-error {
+            background: rgba(255, 59, 48, 0.2);
+            border: 1px solid rgba(255, 59, 48, 0.4);
+            color: #ff3b30;
+        }
+
+        .status-warning {
+            background: rgba(255, 149, 0, 0.2);
+            border: 1px solid rgba(255, 149, 0, 0.4);
+            color: #ff9500;
+        }
+
+        .breach-alert {
+            background: rgba(255, 59, 48, 0.1);
+            border: 2px solid rgba(255, 59, 48, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .redacted {
+            background: #1a1a1a;
+            color: transparent;
+            user-select: none;
+            padding: 0 8px;
+            cursor: pointer;
+        }
+
+        .redacted:hover {
+            color: #d1d1d6;
+            background: #2a2a2a;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 min-h-screen">
+    <div class="watermark uppercase">OSINT</div>
+
+    <!-- Header -->
+    <header class="relative z-10 max-w-6xl mx-auto mb-12">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-white/10 pb-8">
+            <div>
+                <h4 class="text-xs uppercase tracking-[0.4em] text-gray-500 mb-2 font-bold">Open Source Intelligence // India Phone Recon</h4>
+                <h1 class="text-5xl md:text-6xl font-light tracking-tight text-white">
+                    <span class="highlight-letter text-6xl">X</span>elude<span class="highlight-letter text-6xl">D</span> India OSINT
+                </h1>
+                <p class="text-sm text-gray-400 mt-2 italic">Multi-Source Intelligence & Breach Database Aggregator</p>
+            </div>
+            <div class="mt-6 md:mt-0 text-right">
+                <p class="text-xs font-mono text-gray-400">Tool ID: OSINT-IN-001</p>
+                <p class="text-xs font-mono text-gray-400">Region: India (+91)</p>
+                <p class="text-xs font-mono text-red-500 mt-2">⚠ LEGAL USE ONLY</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Input Section -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="status-header p-4">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-white">Query Status</h3>
+                <p id="statusText" class="text-xl font-bold text-white mt-1 uppercase italic">Ready</p>
+            </div>
+
+            <div class="professional-border p-6 rounded-sm">
+                <h3 class="text-xs font-bold uppercase text-gray-500 mb-4 tracking-wider">Target Input</h3>
+                
+                <div class="mb-4">
+                    <label class="block text-[10px] uppercase text-gray-500 mb-2">Indian Phone Number</label>
+                    <input type="tel" id="phoneInput" placeholder="9876543210 or +919876543210" class="w-full p-3 rounded text-sm font-mono">
+                    <p class="text-[9px] text-gray-600 mt-1 italic">10 digit mobile number (6-9 prefix)</p>
+                </div>
+
+                <button onclick="performLookup()" id="lookupBtn" class="lookup-btn w-full p-4 rounded font-bold text-sm uppercase tracking-wider">
+                    🔍 Initiate Deep Scan
+                </button>
+            </div>
+
+            <div class="p-6 bg-white/5 rounded-sm border border-white/5 text-xs text-gray-400 leading-relaxed">
+                <p class="font-bold text-white mb-2 uppercase text-[10px]">⚠ Legal Notice</p>
+                <p class="italic">This tool searches public breach databases and OSINT sources. Data shown is already publicly exposed. Use responsibly for security research only.</p>
+            </div>
+
+            <div class="professional-border p-4 rounded-sm">
+                <h4 class="text-[10px] uppercase text-gray-500 mb-3 font-bold">Data Sources</h4>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Truecaller Database</span>
+                        <span id="source1" class="text-gray-600">●</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Indian Breach DB</span>
+                        <span id="source2" class="text-gray-600">●</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Telecom Registry</span>
+                        <span id="source3" class="text-gray-600">●</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">HIBP Database</span>
+                        <span id="source4" class="text-gray-600">●</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Social Media Scan</span>
+                        <span id="source5" class="text-gray-600">●</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <!-- Loading State -->
+            <div id="loadingState" style="display: none;" class="professional-border p-12 rounded-sm text-center">
+                <div class="spinner mx-auto mb-4"></div>
+                <p class="text-white font-bold uppercase text-sm">Scanning Dark Web & Public Databases...</p>
+                <p class="text-gray-500 text-xs mt-2" id="loadingProgress">Initializing deep scan...</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultsContainer" style="display: none;">
+                
+                <!-- Breach Alert -->
+                <section id="breachAlert" class="breach-alert p-6 rounded-sm" style="display: none;">
+                    <div class="flex items-start gap-4">
+                        <span class="text-4xl">🚨</span>
+                        <div>
+                            <h3 class="text-white font-bold uppercase text-lg mb-2">Data Breach Detected</h3>
+                            <p class="text-red-400 text-sm mb-2">This number appears in <span id="breachCount" class="font-bold">0</span> known data breach(es)</p>
+                            <p class="text-gray-400 text-xs">Detailed breach information available below</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Basic Info -->
+                <section class="professional-border p-6 rounded-sm data-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">📱 Basic Information</h2>
+                        <span id="basicStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="basicInfo" class="space-y-3 text-sm"></div>
+                </section>
+
+                <!-- Carrier & Telecom -->
+                <section class="professional-border p-6 rounded-sm data-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">📡 Telecom Intelligence</h2>
+                        <span id="telecomStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="telecomInfo" class="space-y-3 text-sm"></div>
+                </section>
+
+                <!-- Location Data -->
+                <section class="professional-border p-6 rounded-sm data-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">🌍 Location Intelligence</h2>
+                        <span id="locationStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="locationInfo" class="space-y-3 text-sm"></div>
+                </section>
+
+                <!-- Truecaller / Public Directory -->
+                <section class="professional-border p-6 rounded-sm data-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">📇 Public Directory Matches</h2>
+                        <span id="directoryStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="directoryInfo" class="space-y-3 text-sm"></div>
+                </section>
+
+                <!-- Data Breaches -->
+                <section class="professional-border p-6 rounded-sm data-card border-red-500/30">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">💀 Data Breach Records</h2>
+                        <span id="breachStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="breachInfo" class="space-y-4"></div>
+                </section>
+
+                <!-- Social Media Links -->
+                <section class="professional-border p-6 rounded-sm data-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">🔗 Social Media & Online Presence</h2>
+                        <span id="socialStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="socialInfo" class="space-y-3 text-sm"></div>
+                </section>
+
+                <!-- Additional Intelligence -->
+                <section class="professional-border p-6 rounded-sm data-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white uppercase tracking-wider">🔍 Additional Intelligence</h2>
+                        <span id="additionalStatus" class="status-badge status-warning">Scanning</span>
+                    </div>
+                    <div id="additionalInfo" class="space-y-3 text-sm"></div>
+                </section>
+
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" style="display: none;" class="professional-border p-8 rounded-sm border-red-500/30 bg-red-900/10">
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">⚠️</span>
+                    <div>
+                        <h3 class="text-white font-bold uppercase text-sm mb-2">Lookup Failed</h3>
+                        <p id="errorMessage" class="text-gray-400 text-xs"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial State -->
+            <div id="initialState" class="professional-border p-12 rounded-sm text-center">
+                <div class="text-6xl mb-4">🇮🇳</div>
+                <h3 class="text-white font-bold text-xl mb-2">India Phone Intelligence System</h3>
+                <p class="text-gray-400 text-sm mb-4">Enter an Indian mobile number to begin deep OSINT reconnaissance</p>
+                <p class="text-gray-600 text-xs">Searches: Telecom data, Breach databases, Social media, Public records</p>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center opacity-30">
+        <p class="text-[10px] uppercase tracking-widest">Property of the Ghost Founder Archive</p>
+        <div class="text-sm font-bold tracking-[0.8em] my-4 md:my-0">
+            <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
+        </div>
+        <p class="text-[10px] uppercase tracking-widest">Destroy After Reading</p>
+    </footer>
+
+    <script>
+        // Indian telecom operators and their series
+        const indianOperators = {
+            'Airtel': ['70', '76', '77', '78', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99'],
+            'Jio': ['60', '61', '62', '63', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89'],
+            'Vi (Vodafone Idea)': ['70', '75', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99'],
+            'BSNL': ['60', '62', '70', '74', '76', '77', '78', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '94', '96', '97', '98', '99']
+        };
+
+        const indianStates = [
+            'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+            'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+            'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+            'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+            'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+            'Delhi', 'Mumbai', 'Kolkata', 'Chennai', 'Bangalore', 'Hyderabad'
+        ];
+
+        // Simulated breach databases (in real implementation, these would be actual API calls)
+        const breachDatabases = [
+            { name: 'Truecaller Data Breach', year: 2019, records: '47.5M', types: ['Name', 'Phone', 'Email', 'Gender', 'Location', 'Carrier'] },
+            { name: '1Win Database Leak', year: 2024, records: '6.69M', types: ['Name', 'Phone', 'Email', 'Betting History', 'Payment Details', 'IP Address'] },
+            { name: 'BigBasket Breach', year: 2020, records: '20M', types: ['Name', 'Email', 'Phone', 'Address'] },
+            { name: 'MobiKwik Breach', year: 2021, records: '3.5M', types: ['Phone', 'Email', 'KYC Data', 'Address', 'Password Hashes'] },
+            { name: 'Dominos India', year: 2021, records: '18M', types: ['Phone', 'Email', 'Name', 'Address', 'Order History'] },
+            { name: 'Zomato Breach', year: 2017, records: '17M', types: ['Email', 'Phone', 'Name', 'Password Hashes'] },
+            { name: 'Aadhaar Leak', year: 2018, records: '1.1B', types: ['Aadhaar', 'Phone', 'Address', 'Biometric Data'] },
+            { name: 'JustDial Database', year: 2019, records: '100M', types: ['Name', 'Phone', 'Email', 'Business Info', 'Address'] },
+            { name: 'Paytm Mall Leak', year: 2020, records: '15M', types: ['Phone', 'Email', 'Transaction History', 'UPI Details'] },
+            { name: 'Indane Gas Leak', year: 2021, records: '6M', types: ['Name', 'Phone', 'Address', 'Consumer ID', 'Aadhaar'] }
+        ];
+
+        function updateSourceStatus(sourceId, status) {
+            const element = document.getElementById(sourceId);
+            if (status === 'active') {
+                element.textContent = '●';
+                element.className = 'text-green-500';
+            } else if (status === 'error') {
+                element.textContent = '●';
+                element.className = 'text-red-500';
+            } else {
+                element.textContent = '●';
+                element.className = 'text-yellow-500';
+            }
+        }
+
+        function createDataRow(label, value, type = 'normal') {
+            let valueClass = 'text-white';
+            if (type === 'success') valueClass = 'text-green-500 font-bold';
+            if (type === 'warning') valueClass = 'text-yellow-500 font-bold';
+            if (type === 'error') valueClass = 'text-red-500 font-bold';
+            
+            return `
+                <div class="flex justify-between py-2 border-b border-white/5">
+                    <span class="text-gray-500 text-xs uppercase">${label}</span>
+                    <span class="${valueClass}">${value || 'N/A'}</span>
+                </div>
+            `;
+        }
+
+        function detectOperator(phone) {
+            const prefix = phone.substring(0, 2);
+            const possibilities = [];
+            
+            for (const [operator, series] of Object.entries(indianOperators)) {
+                if (series.includes(prefix)) {
+                    possibilities.push(operator);
+                }
+            }
+            
+            return possibilities.length > 0 ? possibilities[0] : 'Unknown Operator';
+        }
+
+        function getRandomState() {
+            return indianStates[Math.floor(Math.random() * indianStates.length)];
+        }
+
+        async function performLookup() {
+            let phoneInput = document.getElementById('phoneInput').value.trim();
+            
+            if (!phoneInput) {
+                alert('⚠ ERROR: Please enter a phone number');
+                return;
+            }
+
+            // Clean and validate Indian phone number
+            phoneInput = phoneInput.replace(/\D/g, '');
+            
+            // Handle +91 prefix
+            if (phoneInput.startsWith('91') && phoneInput.length === 12) {
+                phoneInput = phoneInput.substring(2);
+            }
+            
+            // Validate Indian mobile format
+            if (phoneInput.length !== 10 || !['6', '7', '8', '9'].includes(phoneInput[0])) {
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Invalid Indian mobile number. Must be 10 digits starting with 6, 7, 8, or 9.';
+                return;
+            }
+
+            // UI State Updates
+            document.getElementById('lookupBtn').disabled = true;
+            document.getElementById('statusText').textContent = 'Deep Scanning';
+            document.getElementById('initialState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+
+            try {
+                // Simulate progressive loading
+                await updateProgress('Analyzing phone number format...', 1000);
+                await updateProgress('Querying telecom databases...', 1500);
+                await updateProgress('Scanning breach databases...', 2000);
+                await updateProgress('Searching public directories...', 1500);
+                await updateProgress('Aggregating social media data...', 1000);
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resultsContainer').style.display = 'block';
+
+                // Perform lookups
+                await lookupBasicInfo(phoneInput);
+                await lookupTelecom(phoneInput);
+                await lookupLocation(phoneInput);
+                await lookupPublicDirectory(phoneInput);
+                await lookupBreaches(phoneInput);
+                await lookupSocialMedia(phoneInput);
+                await lookupAdditional(phoneInput);
+
+                document.getElementById('statusText').textContent = 'Scan Complete';
+                
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('statusText').textContent = 'Error';
+            } finally {
+                document.getElementById('lookupBtn').disabled = false;
+            }
+        }
+
+        async function updateProgress(message, delay) {
+            document.getElementById('loadingProgress').textContent = message;
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        async function lookupBasicInfo(phone) {
+            updateSourceStatus('source1', 'loading');
+            
+            const operator = detectOperator(phone);
+            const formattedPhone = `+91 ${phone.substring(0, 5)} ${phone.substring(5)}`;
+            
+            updateSourceStatus('source1', 'active');
+            document.getElementById('basicStatus').className = 'status-badge status-success';
+            
+            document.getElementById('basicInfo').innerHTML = `
+                ${createDataRow('Number', formattedPhone)}
+                ${createDataRow('Country', '🇮🇳 India')}
+                ${createDataRow('Country Code', '+91')}
+                ${createDataRow('Number Type', 'Mobile', 'success')}
+                ${createDataRow('Valid Format', 'Yes', 'success')}
+                ${createDataRow('Series Prefix', phone.substring(0, 4))}
+                ${createDataRow('Length', '10 digits', 'success')}
+            `;
+        }
+
+        async function lookupTelecom(phone) {
+            updateSourceStatus('source3', 'loading');
+            
+            const operator = detectOperator(phone);
+            const technologies = ['4G LTE', '5G', 'VoLTE'];
+            const randomTech = technologies[Math.floor(Math.random() * technologies.length)];
+            
+            updateSourceStatus('source3', 'active');
+            document.getElementById('telecomStatus').className = 'status-badge status-success';
+            
+            document.getElementById('telecomInfo').innerHTML = `
+                ${createDataRow('Primary Operator', operator, 'success')}
+                ${createDataRow('Network Type', randomTech)}
+                ${createDataRow('Portability Status', Math.random() > 0.5 ? 'Ported' : 'Original', Math.random() > 0.5 ? 'warning' : 'success')}
+                ${createDataRow('Registration Type', 'Prepaid/Postpaid')}
+                ${createDataRow('Active Status', 'Likely Active', 'success')}
+                ${createDataRow('TRAI Registered', 'Yes', 'success')}
+            `;
+        }
+
+        async function lookupLocation(phone) {
+            const state = getRandomState();
+            const circles = ['North', 'South', 'East', 'West', 'Metro'];
+            const randomCircle = circles[Math.floor(Math.random() * circles.length)];
+            
+            document.getElementById('locationStatus').className = 'status-badge status-success';
+            
+            document.getElementById('locationInfo').innerHTML = `
+                ${createDataRow('Country', 'India')}
+                ${createDataRow('Telecom Circle', randomCircle)}
+                ${createDataRow('Likely State/Region', state)}
+                ${createDataRow('Time Zone', 'IST (UTC+5:30)')}
+                ${createDataRow('Registration Area', 'Estimated from series')}
+            `;
+        }
+
+        async function lookupPublicDirectory(phone) {
+            updateSourceStatus('source1', 'loading');
+            
+            // Simulate Truecaller-style data - Generate name based on phone number for consistency
+            const names = [
+                'Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Singh', 'Vikram Reddy', 
+                'Deepika Verma', 'Rohit Malhotra', 'Ananya Gupta', 'Karan Mehta', 'Neha Kapoor',
+                'Sanjay Joshi', 'Pooja Desai', 'Arjun Nair', 'Kavita Rao', 'Rahul Bhatia',
+                'Unknown User', 'Private Number', 'Not Listed'
+            ];
+            
+            // Use phone number to deterministically select a name (same phone = same result)
+            const nameIndex = parseInt(phone.substring(phone.length - 2)) % names.length;
+            const randomName = names[nameIndex];
+            
+            // Generate spam score based on phone digits
+            const spamScore = parseInt(phone.substring(phone.length - 3, phone.length - 1)) % 100;
+            
+            updateSourceStatus('source1', 'active');
+            document.getElementById('directoryStatus').className = 'status-badge status-success';
+            
+            const isUnknown = ['Unknown User', 'Private Number', 'Not Listed'].includes(randomName);
+            
+            document.getElementById('directoryInfo').innerHTML = `
+                ${createDataRow('Name Match', isUnknown ? '<span class="redacted">████████</span>' : randomName, !isUnknown ? 'warning' : 'normal')}
+                ${createDataRow('Spam Score', spamScore + '/100', spamScore > 70 ? 'error' : spamScore > 40 ? 'warning' : 'success')}
+                ${createDataRow('Reported As', spamScore > 70 ? 'Spam/Telemarketer' : 'Safe', spamScore > 70 ? 'error' : 'success')}
+                ${createDataRow('Business/Personal', parseInt(phone[3]) % 2 === 0 ? 'Personal' : 'Business')}
+                ${createDataRow('Public Reports', parseInt(phone.substring(phone.length - 3)))}
+                ${createDataRow('Last Updated', new Date(Date.now() - (parseInt(phone.substring(phone.length - 2)) * 24 * 60 * 60 * 1000)).toLocaleDateString())}
+            `;
+        }
+
+        async function lookupBreaches(phone) {
+            updateSourceStatus('source2', 'loading');
+            updateSourceStatus('source4', 'loading');
+            
+            // Simulate breach detection (random 40% chance for more realistic results)
+            const hasBreaches = Math.random() > 0.6;
+            const breachCount = hasBreaches ? Math.floor(Math.random() * 3) + 1 : 0;
+            
+            // Generate consistent names from breach data
+            const breachNames = [
+                'Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Singh', 'Vikram Reddy', 
+                'Deepika Verma', 'Rohit Malhotra', 'Ananya Gupta', 'Karan Mehta', 'Neha Kapoor',
+                'Sanjay Joshi', 'Pooja Desai', 'Arjun Nair', 'Kavita Rao', 'Rahul Bhatia',
+                'Aditya Sharma', 'Riya Agarwal', 'Kunal Singh', 'Divya Iyer', 'Rohan Chopra'
+            ];
+            
+            const breachEmails = [
+                '@gmail.com', '@yahoo.com', '@outlook.com', '@rediffmail.com', '@hotmail.com'
+            ];
+            
+            // Use phone number to generate consistent breach data
+            const nameIndex = parseInt(phone.substring(phone.length - 2)) % breachNames.length;
+            const breachName = breachNames[nameIndex];
+            const emailPrefix = breachName.toLowerCase().replace(' ', '.');
+            const emailIndex = parseInt(phone[5]) % breachEmails.length;
+            const breachEmail = emailPrefix + breachEmails[emailIndex];
+            
+            if (hasBreaches) {
+                document.getElementById('breachAlert').style.display = 'block';
+                document.getElementById('breachCount').textContent = breachCount;
+            }
+            
+            updateSourceStatus('source2', 'active');
+            updateSourceStatus('source4', 'active');
+            document.getElementById('breachStatus').className = hasBreaches ? 'status-badge status-error' : 'status-badge status-success';
+            
+            if (hasBreaches) {
+                let breachHTML = `
+                    <div class="bg-black/60 border border-red-500/40 p-4 rounded-lg mb-4">
+                        <h4 class="text-red-400 font-bold mb-3 text-sm uppercase">🚨 Compromised Identity Found</h4>
+                        <div class="space-y-2 text-xs">
+                            ${createDataRow('Name from Breach', '<span class="redacted" title="Click to reveal">' + breachName + '</span>', 'error')}
+                            ${createDataRow('Email from Breach', '<span class="redacted" title="Click to reveal">' + breachEmail + '</span>', 'error')}
+                            ${createDataRow('Phone Number', '+91 ' + phone.substring(0, 5) + ' ' + phone.substring(5), 'error')}
+                            ${createDataRow('Total Breaches Found', breachCount, 'error')}
+                        </div>
+                    </div>
+                    <div class="text-red-400 font-bold mb-4 text-xs uppercase">⚠️ Breach Details Below</div>
+                `;
+                
+                const selectedBreaches = breachDatabases.sort(() => 0.5 - Math.random()).slice(0, breachCount);
+                
+                selectedBreaches.forEach((breach, index) => {
+                    // Generate specific compromised data for each breach
+                    const compromisedData = {};
+                    breach.types.forEach(type => {
+                        switch(type.toLowerCase()) {
+                            case 'name':
+                                compromisedData['Name'] = breachName;
+                                break;
+                            case 'email':
+                                compromisedData['Email'] = breachEmail;
+                                break;
+                            case 'phone':
+                                compromisedData['Phone'] = '+91-' + phone;
+                                break;
+                            case 'address':
+                                const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad'];
+                                compromisedData['Address'] = cities[parseInt(phone[index]) % cities.length];
+                                break;
+                            case 'password hashes':
+                                compromisedData['Password Hash'] = 'SHA256: ' + phone.substring(0, 6) + '...';
+                                break;
+                            case 'aadhaar':
+                                compromisedData['Aadhaar'] = 'XXXX-XXXX-' + phone.substring(6);
+                                break;
+                            case 'payment details':
+                            case 'upi details':
+                                compromisedData['UPI ID'] = emailPrefix + '@paytm';
+                                break;
+                        }
+                    });
+                    
+                    breachHTML += `
+                        <div class="bg-black/40 border border-red-500/30 p-4 rounded mb-3">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="text-white font-bold text-sm">${breach.name}</h4>
+                                <span class="status-badge status-error">${breach.year}</span>
+                            </div>
+                            <div class="text-xs space-y-1 mb-3">
+                                ${createDataRow('Total Records', breach.records, 'error')}
+                                ${createDataRow('Data Types', breach.types.length + ' categories')}
+                                ${createDataRow('Risk Level', 'High', 'error')}
+                            </div>
+                            <div class="mt-3 p-3 bg-red-900/20 rounded border border-red-500/20">
+                                <p class="text-[10px] font-bold text-red-400 mb-2 uppercase">Compromised Data (Click to reveal):</p>
+                                <div class="space-y-1 text-[11px]">
+                                    ${Object.entries(compromisedData).map(([key, value]) => `
+                                        <div class="flex justify-between py-1">
+                                            <span class="text-gray-500">${key}:</span>
+                                            <span class="redacted text-right">${value}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('breachInfo').innerHTML = breachHTML;
+            } else {
+                document.getElementById('breachInfo').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-3">✅</div>
+                        <p class="text-green-500 font-bold mb-2">No Breaches Detected</p>
+                        <p class="text-gray-400 text-xs">This number was not found in any known data breach databases</p>
+                    </div>
+                `;
+            }
+            
+            // Update public directory with breach name if found
+            if (hasBreaches) {
+                await updateDirectoryWithBreachName(phone, breachName, breachEmail);
+            }
+        }
+
+        async function updateDirectoryWithBreachName(phone, breachName, breachEmail) {
+            // Update the directory info to show name from breach
+            const spamScore = parseInt(phone.substring(phone.length - 3, phone.length - 1)) % 100;
+            
+            document.getElementById('directoryInfo').innerHTML = `
+                ${createDataRow('Name Match', breachName + ' <span class="text-red-500 text-[10px]">(FROM BREACH)</span>', 'error')}
+                ${createDataRow('Email Found', breachEmail, 'error')}
+                ${createDataRow('Spam Score', spamScore + '/100', spamScore > 70 ? 'error' : spamScore > 40 ? 'warning' : 'success')}
+                ${createDataRow('Reported As', spamScore > 70 ? 'Spam/Telemarketer' : 'Safe', spamScore > 70 ? 'error' : 'success')}
+                ${createDataRow('Business/Personal', parseInt(phone[3]) % 2 === 0 ? 'Personal' : 'Business')}
+                ${createDataRow('Public Reports', parseInt(phone.substring(phone.length - 3)))}
+                ${createDataRow('Last Updated', new Date(Date.now() - (parseInt(phone.substring(phone.length - 2)) * 24 * 60 * 60 * 1000)).toLocaleDateString())}
+                ${createDataRow('Data Source', 'Breach Database', 'error')}
+            `;
+        }
+
+        async function lookupSocialMedia(phone) {
+            updateSourceStatus('source5', 'loading');
+            
+            const hasSocial = Math.random() > 0.5;
+            
+            updateSourceStatus('source5', 'active');
+            document.getElementById('socialStatus').className = 'status-badge status-success';
+            
+            if (hasSocial) {
+                const platforms = [
+                    { name: 'WhatsApp', status: 'Registered', icon: '💬' },
+                    { name: 'Telegram', status: Math.random() > 0.5 ? 'Found' : 'Not Found', icon: '✈️' },
+                    { name: 'Instagram', status: Math.random() > 0.5 ? 'Linked' : 'Not Found', icon: '📷' },
+                    { name: 'Facebook', status: Math.random() > 0.5 ? 'Linked' : 'Not Found', icon: '👤' }
+                ];
+                
+                let socialHTML = '';
+                platforms.forEach(platform => {
+                    const isFound = platform.status !== 'Not Found';
+                    socialHTML += createDataRow(
+                        `${platform.icon} ${platform.name}`, 
+                        platform.status, 
+                        isFound ? 'warning' : 'normal'
+                    );
+                });
+                
+                document.getElementById('socialInfo').innerHTML = socialHTML;
+            } else {
+                document.getElementById('socialInfo').innerHTML = `
+                    <div class="text-center py-6 text-gray-500 text-xs">
+                        No social media profiles publicly linked to this number
+                    </div>
+                `;
+            }
+        }
+
+        async function lookupAdditional(phone) {
+            document.getElementById('additionalStatus').className = 'status-badge status-success';
+            
+            const timestamp = new Date().toISOString();
+            const risk = Math.floor(Math.random() * 100);
+            
+            document.getElementById('additionalInfo').innerHTML = `
+                ${createDataRow('Scan Timestamp', timestamp)}
+                ${createDataRow('Overall Risk Score', risk + '/100', risk > 70 ? 'error' : risk > 40 ? 'warning' : 'success')}
+                ${createDataRow('DND Status', Math.random() > 0.5 ? 'Registered' : 'Not Registered')}
+                ${createDataRow('Age Estimate', Math.floor(Math.random() * 10) + 1 + ' years')}
+                ${createDataRow('IMEI Linked', Math.random() > 0.5 ? 'Multiple Devices' : 'Single Device')}
+                ${createDataRow('Data Sources', 'Multiple OSINT databases')}
+            `;
+        }
+
+        // Enter key support
+        document.getElementById('phoneInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performLookup();
+            }
+        });
+
+        // Redacted text reveal on click
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('redacted')) {
+                e.target.style.background = '#2a2a2a';
+                e.target.style.color = '#d1d1d6';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.95) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .admin-btn {
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+
+        .admin-btn:hover {
+            border-color: #ff3b30;
+            box-shadow: 0 0 30px rgba(255, 59, 48, 0.3);
+        }
+
+        .admin-btn-danger {
+            border-color: rgba(255, 59, 48, 0.5);
+        }
+
+        .admin-btn-danger:hover {
+            background: rgba(255, 59, 48, 0.1);
+        }
+
+        .admin-btn-success {
+            border-color: rgba(48, 209, 88, 0.5);
+        }
+
+        .admin-btn-success:hover {
+            background: rgba(48, 209, 88, 0.1);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: #888;
+        }
+
+        tr:hover {
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-active {
+            background: rgba(48, 209, 88, 0.15);
+            border: 1px solid rgba(48, 209, 88, 0.4);
+            color: #30d158;
+        }
+
+        .badge-inactive {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #0a0a0c;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 4px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff3b30;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 0.1em;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 59, 48, 0.3);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #30d158;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+        }
+
+        .tab-button.active {
+            background: rgba(255, 59, 48, 0.1);
+            border-color: #ff3b30;
+            color: #ff3b30;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-16 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="mb-12 border-b border-white/10 pb-8">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h1 class="text-5xl md:text-7xl font-light tracking-tight text-white mb-2">
+                        <span class="highlight-letter text-6xl md:text-8xl">A</span>DMIN <span class="highlight-letter text-6xl md:text-8xl">P</span>ANEL
+                    </h1>
+                    <p class="text-sm text-gray-400 italic">Full System Control & Management</p>
+                </div>
+                <div class="text-right">
+                    <p id="adminEmail" class="text-xs font-mono text-gray-400">Loading...</p>
+                    <button id="logoutBtn" class="mt-2 text-[10px] text-gray-600 hover:text-red-500 uppercase tracking-widest border border-gray-800 px-2 py-1 rounded hover:border-red-900 transition">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Dashboard -->
+        <section class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activeSubs">0</div>
+                    <div class="stat-label">Active Subscriptions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRevenue">$0</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendingPayments">0</div>
+                    <div class="stat-label">Pending Payments</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs -->
+        <div class="mb-6 flex flex-wrap gap-2 border-b border-white/10 pb-4">
+            <button class="tab-button active" onclick="switchTab('users')">Users</button>
+            <button class="tab-button" onclick="switchTab('tools')">Tool Access</button>
+            <button class="tab-button" onclick="switchTab('store')">Store Config</button>
+            <button class="tab-button" onclick="switchTab('payments')">Payments</button>
+            <button class="tab-button" onclick="switchTab('wallets')">Wallets</button>
+            <button class="tab-button" onclick="switchTab('analytics')">Analytics</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="tab-users" class="tab-content active">
+            <div class="professional-border p-6 rounded-sm mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-white uppercase tracking-widest">User Management</h2>
+                    <button onclick="refreshUsers()" class="admin-btn px-4 py-2 rounded text-sm uppercase tracking-widest">
+                        Refresh
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>IP Address</th>
+                                <th>Created</th>
+                                <th>Active Tools</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="6" class="text-center text-gray-500">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tool Access Tab -->
+        <div id="tab-tools" class="tab-content">
+            <div class="professional-border p-6 rounded-sm mb-6">
+                <h2 class="text-2xl font-bold text-white uppercase tracking-widest mb-6">Tool Access Management</h2>
+                <div class="mb-6">
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">Select User</label>
+                    <select id="toolUserSelect" class="mb-4">
+                        <option value="">-- Select User --</option>
+                    </select>
+                </div>
+                <div id="toolAccessControls" class="hidden">
+                    <h3 class="text-lg font-bold text-white mb-4">Grant/Revoke Tool Access</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">Encryptor RAL</div>
+                                <div class="text-xs text-gray-500" id="encryptor_ral_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_encryptor_ral" onchange="updateToolAccess('encryptor_ral', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">DB Scan</div>
+                                <div class="text-xs text-gray-500" id="db_scan_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_db_scan" onchange="updateToolAccess('db_scan', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">Encoder</div>
+                                <div class="text-xs text-gray-500" id="encoder_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_encoder" onchange="updateToolAccess('encoder', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">Hash Cracker</div>
+                                <div class="text-xs text-gray-500" id="hash_cracker_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_hash_cracker" onchange="updateToolAccess('hash_cracker', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">Password Generator</div>
+                                <div class="text-xs text-gray-500" id="pass_gen_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_pass_gen" onchange="updateToolAccess('pass_gen', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">Port Scanner</div>
+                                <div class="text-xs text-gray-500" id="port_scan_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_port_scan" onchange="updateToolAccess('port_scan', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">RF Analyzer</div>
+                                <div class="text-xs text-gray-500" id="rf_analyzer_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_rf_analyzer" onchange="updateToolAccess('rf_analyzer', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-black/30 rounded border border-white/5">
+                            <div>
+                                <div class="font-bold text-white">Wallet Finder</div>
+                                <div class="text-xs text-gray-500" id="wallet_finder_expiry"></div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle_wallet_finder" onchange="updateToolAccess('wallet_finder', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">Set Expiry Date (for selected tool)</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-2">Tool</label>
+                                <select id="expiryToolSelect">
+                                    <option value="">Select Tool</option>
+                                    <option value="encryptor_ral">Encryptor RAL</option>
+                                    <option value="db_scan">DB Scan</option>
+                                    <option value="encoder">Encoder</option>
+                                    <option value="hash_cracker">Hash Cracker</option>
+                                    <option value="pass_gen">Password Generator</option>
+                                    <option value="port_scan">Port Scanner</option>
+                                    <option value="rf_analyzer">RF Analyzer</option>
+                                    <option value="wallet_finder">Wallet Finder</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-2">Days to Add</label>
+                                <input type="number" id="expiryDays" value="30" min="1" max="3650">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="setExpiry()" class="admin-btn admin-btn-success px-4 py-2 rounded text-sm uppercase tracking-widest w-full">
+                                    Set Expiry
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Store Config Tab -->
+        <div id="tab-store" class="tab-content">
+            <div class="professional-border p-6 rounded-sm mb-6">
+                <h2 class="text-2xl font-bold text-white uppercase tracking-widest mb-6">Store Configuration</h2>
+                <div class="mb-6">
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">Select Tool</label>
+                    <select id="storeToolSelect" onchange="loadStoreConfig()" class="mb-4">
+                        <option value="">-- Select Tool --</option>
+                        <option value="encryptor_ral">Encryptor RAL</option>
+                        <option value="db_scan">DB Scan</option>
+                        <option value="encoder">Encoder</option>
+                        <option value="hash_cracker">Hash Cracker</option>
+                        <option value="pass_gen">Password Generator</option>
+                        <option value="port_scan">Port Scanner</option>
+                        <option value="rf_analyzer">RF Analyzer</option>
+                        <option value="wallet_finder">Wallet Finder</option>
+                    </select>
+                </div>
+                <div id="storeConfigSection" class="hidden">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-white mb-4">Plans</h3>
+                        <div id="plansList" class="space-y-4 mb-6"></div>
+                        <button onclick="addNewPlan()" class="admin-btn admin-btn-success px-4 py-2 rounded text-sm uppercase tracking-widest">
+                            + Add New Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="tab-payments" class="tab-content">
+            <div class="professional-border p-6 rounded-sm mb-6">
+                <h2 class="text-2xl font-bold text-white uppercase tracking-widest mb-6">Payment Management</h2>
+                <div class="table-container">
+                    <table id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Wallet Address</th>
+                                <th>Required USD</th>
+                                <th>Required BTC</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Completed</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <tr><td colspan="7" class="text-center text-gray-500">Loading payments...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallets Tab -->
+        <div id="tab-wallets" class="tab-content">
+            <div class="professional-border p-6 rounded-sm mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-white uppercase tracking-widest">Wallet Management</h2>
+                    <button onclick="addWallet()" class="admin-btn admin-btn-success px-4 py-2 rounded text-sm uppercase tracking-widest">
+                        + Add Wallet
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="walletsTable">
+                        <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Is Used</th>
+                                <th>Assigned At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="walletsTableBody">
+                            <tr><td colspan="4" class="text-center text-gray-500">Loading wallets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="tab-analytics" class="tab-content">
+            <div class="professional-border p-6 rounded-sm mb-6">
+                <h2 class="text-2xl font-bold text-white uppercase tracking-widest mb-6">Analytics & Statistics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4">Tool Usage</h3>
+                        <div id="toolUsageStats" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-2 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Edit User</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Email</label>
+                    <input type="email" id="editUserEmail" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Name</label>
+                    <input type="text" id="editUserName">
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="saveUserEdit()" class="admin-btn admin-btn-success px-4 py-2 rounded text-sm uppercase tracking-widest flex-1">
+                        Save
+                    </button>
+                    <button onclick="closeModal('editUserModal')" class="admin-btn px-4 py-2 rounded text-sm uppercase tracking-widest flex-1">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Plan Modal -->
+    <div id="addPlanModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Add New Plan</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Plan ID</label>
+                    <input type="text" id="newPlanId" placeholder="e.g., plan_1">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Label</label>
+                    <input type="text" id="newPlanLabel" placeholder="e.g., Basic Plan">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Price ($)</label>
+                    <input type="number" id="newPlanPrice" min="0" step="0.01">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Days</label>
+                    <input type="number" id="newPlanDays" min="1">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Stock</label>
+                    <input type="number" id="newPlanStock" min="0">
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="saveNewPlan()" class="admin-btn admin-btn-success px-4 py-2 rounded text-sm uppercase tracking-widest flex-1">
+                        Add Plan
+                    </button>
+                    <button onclick="closeModal('addPlanModal')" class="admin-btn px-4 py-2 rounded text-sm uppercase tracking-widest flex-1">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Wallet Modal -->
+    <div id="addWalletModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Add Wallet</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-bold">Bitcoin Address</label>
+                    <input type="text" id="newWalletAddress" placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa">
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="saveNewWallet()" class="admin-btn admin-btn-success px-4 py-2 rounded text-sm uppercase tracking-widest flex-1">
+                        Add Wallet
+                    </button>
+                    <button onclick="closeModal('addWalletModal')" class="admin-btn px-4 py-2 rounded text-sm uppercase tracking-widest flex-1">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, get, update, remove, push } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIrktFBxhqmO_nYfaVLygOy_hj0jEQ1f8",
+            authDomain: "toolhb-8f959.firebaseapp.com",
+            databaseURL: "https://toolhb-8f959-default-rtdb.firebaseio.com",
+            projectId: "toolhb-8f959",
+            storageBucket: "toolhb-8f959.firebasestorage.app",
+            messagingSenderId: "390399955912",
+            appId: "1:390399955912:web:ff93435c9e6c9ff0fc66fd",
+            measurementId: "G-WTKQE4R2EK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        const toolKeys = [
+            'encryptor_ral', 'db_scan', 'encoder', 'hash_cracker', 
+            'pass_gen', 'port_scan', 'rf_analyzer', 'wallet_finder'
+        ];
+
+        let currentEditingUserId = null;
+        let currentStoreTool = null;
+
+        // Admin email list - Add authorized admin emails here
+        const ADMIN_EMAILS = [
+            // Add your admin emails here, e.g.:
+            // 'admin@example.com',
+            // 'owner@example.com'
+        ];
+
+        // Check admin access
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Check if user is admin (if ADMIN_EMAILS is empty, allow all logged-in users)
+                if (ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(user.email)) {
+                    alert('Access Denied: Admin privileges required');
+                    window.location.href = "dashboard.html";
+                    return;
+                }
+                document.getElementById('adminEmail').textContent = `ADMIN: ${user.email}`;
+                loadAllData();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        });
+
+        // Tab switching
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            if (tabName === 'users') refreshUsers();
+            if (tabName === 'payments') loadPayments();
+            if (tabName === 'wallets') loadWallets();
+            if (tabName === 'analytics') loadAnalytics();
+        };
+
+        // Load all data
+        function loadAllData() {
+            refreshUsers();
+            loadPayments();
+            loadWallets();
+            loadAnalytics();
+            populateUserSelects();
+        }
+
+        // Users Management
+        function refreshUsers() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const users = snapshot.val() || {};
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+                
+                let totalUsers = 0;
+                let activeSubs = 0;
+
+                Object.keys(users).forEach(uid => {
+                    const user = users[uid];
+                    totalUsers++;
+                    
+                    const activeTools = Object.values(user.tool_access || {}).filter(v => v === true).length;
+                    if (activeTools > 0) activeSubs += activeTools;
+
+                    const row = document.createElement('tr');
+                    const createdDate = new Date(user.createdAt || 0).toLocaleDateString();
+                    row.innerHTML = `
+                        <td>${user.email || 'N/A'}</td>
+                        <td>${user.name || 'N/A'}</td>
+                        <td class="font-mono text-xs">${user.ip_address || 'N/A'}</td>
+                        <td>${createdDate}</td>
+                        <td><span class="badge ${activeTools > 0 ? 'badge-active' : 'badge-inactive'}">${activeTools} Active</span></td>
+                        <td>
+                            <button onclick="editUser('${uid}')" class="admin-btn px-2 py-1 rounded text-xs uppercase mr-2">Edit</button>
+                            <button onclick="deleteUser('${uid}')" class="admin-btn admin-btn-danger px-2 py-1 rounded text-xs uppercase">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('totalUsers').textContent = totalUsers;
+                document.getElementById('activeSubs').textContent = activeSubs;
+            });
+        }
+
+        window.editUser = function(uid) {
+            const userRef = ref(db, `users/${uid}`);
+            get(userRef).then((snapshot) => {
+                const user = snapshot.val();
+                currentEditingUserId = uid;
+                document.getElementById('editUserEmail').value = user.email || '';
+                document.getElementById('editUserName').value = user.name || '';
+                document.getElementById('editUserModal').classList.add('active');
+            });
+        };
+
+        window.saveUserEdit = function() {
+            if (!currentEditingUserId) return;
+            const name = document.getElementById('editUserName').value;
+            update(ref(db, `users/${currentEditingUserId}`), { name: name })
+                .then(() => {
+                    alert('User updated successfully!');
+                    closeModal('editUserModal');
+                    refreshUsers();
+                });
+        };
+
+        window.deleteUser = function(uid) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            remove(ref(db, `users/${uid}`))
+                .then(() => {
+                    alert('User deleted successfully!');
+                    refreshUsers();
+                });
+        };
+
+        // Tool Access Management
+        function populateUserSelects() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const users = snapshot.val() || {};
+                const select = document.getElementById('toolUserSelect');
+                select.innerHTML = '<option value="">-- Select User --</option>';
+                
+                Object.keys(users).forEach(uid => {
+                    const user = users[uid];
+                    const option = document.createElement('option');
+                    option.value = uid;
+                    option.textContent = `${user.email || 'N/A'} (${user.name || 'N/A'})`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        document.getElementById('toolUserSelect').addEventListener('change', function() {
+            const uid = this.value;
+            if (!uid) {
+                document.getElementById('toolAccessControls').classList.add('hidden');
+                return;
+            }
+
+            const userRef = ref(db, `users/${uid}`);
+            get(userRef).then((snapshot) => {
+                const user = snapshot.val();
+                const toolAccess = user.tool_access || {};
+                const toolExpiry = user.tool_expiry || {};
+
+                toolKeys.forEach(tool => {
+                    const toggle = document.getElementById(`toggle_${tool}`);
+                    toggle.checked = toolAccess[tool] === true;
+                    
+                    const expiryEl = document.getElementById(`${tool}_expiry`);
+                    if (toolExpiry[tool]) {
+                        const expiryDate = new Date(toolExpiry[tool]);
+                        expiryEl.textContent = `Expires: ${expiryDate.toLocaleDateString()}`;
+                    } else {
+                        expiryEl.textContent = 'No expiry set';
+                    }
+                });
+
+                document.getElementById('toolAccessControls').classList.remove('hidden');
+                window.currentToolUserUid = uid;
+            });
+        });
+
+        window.updateToolAccess = function(toolKey, hasAccess) {
+            if (!window.currentToolUserUid) return;
+            
+            const updates = {};
+            updates[`users/${window.currentToolUserUid}/tool_access/${toolKey}`] = hasAccess;
+            
+            if (hasAccess && !document.getElementById(`${toolKey}_expiry`).textContent.includes('Expires:')) {
+                const defaultExpiry = Date.now() + (30 * 24 * 60 * 60 * 1000);
+                updates[`users/${window.currentToolUserUid}/tool_expiry/${toolKey}`] = defaultExpiry;
+            } else if (!hasAccess) {
+                updates[`users/${window.currentToolUserUid}/tool_expiry/${toolKey}`] = null;
+            }
+
+            update(ref(db), updates)
+                .then(() => {
+                    alert(`Tool access ${hasAccess ? 'granted' : 'revoked'} successfully!`);
+                    document.getElementById('toolUserSelect').dispatchEvent(new Event('change'));
+                });
+        };
+
+        window.setExpiry = function() {
+            if (!window.currentToolUserUid) {
+                alert('Please select a user first');
+                return;
+            }
+
+            const toolKey = document.getElementById('expiryToolSelect').value;
+            const days = parseInt(document.getElementById('expiryDays').value);
+
+            if (!toolKey || !days) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const expiryDate = Date.now() + (days * 24 * 60 * 60 * 1000);
+            update(ref(db, `users/${window.currentToolUserUid}/tool_expiry`), { [toolKey]: expiryDate })
+                .then(() => {
+                    alert('Expiry date set successfully!');
+                    document.getElementById('toolUserSelect').dispatchEvent(new Event('change'));
+                });
+        };
+
+        // Store Configuration
+        window.loadStoreConfig = function() {
+            const toolKey = document.getElementById('storeToolSelect').value;
+            if (!toolKey) {
+                document.getElementById('storeConfigSection').classList.add('hidden');
+                return;
+            }
+
+            currentStoreTool = toolKey;
+            const storeRef = ref(db, `store_config/${toolKey}`);
+            get(storeRef).then((snapshot) => {
+                const config = snapshot.val() || { plans: {} };
+                const plans = config.plans || {};
+                
+                const plansList = document.getElementById('plansList');
+                plansList.innerHTML = '';
+
+                Object.keys(plans).forEach(planId => {
+                    const plan = plans[planId];
+                    const planDiv = document.createElement('div');
+                    planDiv.className = 'p-4 bg-black/30 rounded border border-white/5';
+                    planDiv.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-2">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Plan ID</label>
+                                <input type="text" value="${planId}" class="plan-id" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Label</label>
+                                <input type="text" value="${plan.label || ''}" class="plan-label">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Price ($)</label>
+                                <input type="number" value="${plan.price || 0}" class="plan-price" min="0" step="0.01">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Days</label>
+                                <input type="number" value="${plan.days || 30}" class="plan-days" min="1">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Stock</label>
+                                <input type="number" value="${plan.stock || 0}" class="plan-stock" min="0">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="savePlan('${planId}')" class="admin-btn admin-btn-success px-3 py-1 rounded text-xs uppercase">Save</button>
+                            <button onclick="deletePlan('${planId}')" class="admin-btn admin-btn-danger px-3 py-1 rounded text-xs uppercase">Delete</button>
+                        </div>
+                    `;
+                    plansList.appendChild(planDiv);
+                });
+
+                document.getElementById('storeConfigSection').classList.remove('hidden');
+            });
+        };
+
+        window.savePlan = function(planId) {
+            const planDiv = event.target.closest('.p-4');
+            const label = planDiv.querySelector('.plan-label').value;
+            const price = parseFloat(planDiv.querySelector('.plan-price').value);
+            const days = parseInt(planDiv.querySelector('.plan-days').value);
+            const stock = parseInt(planDiv.querySelector('.plan-stock').value);
+
+            update(ref(db, `store_config/${currentStoreTool}/plans/${planId}`), {
+                label: label,
+                price: price,
+                days: days,
+                stock: stock
+            }).then(() => {
+                alert('Plan updated successfully!');
+            });
+        };
+
+        window.deletePlan = function(planId) {
+            if (!confirm('Are you sure you want to delete this plan?')) return;
+            remove(ref(db, `store_config/${currentStoreTool}/plans/${planId}`))
+                .then(() => {
+                    alert('Plan deleted successfully!');
+                    loadStoreConfig();
+                });
+        };
+
+        window.addNewPlan = function() {
+            if (!currentStoreTool) {
+                alert('Please select a tool first');
+                return;
+            }
+            document.getElementById('addPlanModal').classList.add('active');
+        };
+
+        window.saveNewPlan = function() {
+            const planId = document.getElementById('newPlanId').value;
+            const label = document.getElementById('newPlanLabel').value;
+            const price = parseFloat(document.getElementById('newPlanPrice').value);
+            const days = parseInt(document.getElementById('newPlanDays').value);
+            const stock = parseInt(document.getElementById('newPlanStock').value);
+
+            if (!planId || !label || !price || !days) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            set(ref(db, `store_config/${currentStoreTool}/plans/${planId}`), {
+                label: label,
+                price: price,
+                days: days,
+                stock: stock || 0
+            }).then(() => {
+                alert('Plan added successfully!');
+                closeModal('addPlanModal');
+                document.getElementById('newPlanId').value = '';
+                document.getElementById('newPlanLabel').value = '';
+                document.getElementById('newPlanPrice').value = '';
+                document.getElementById('newPlanDays').value = '';
+                document.getElementById('newPlanStock').value = '';
+                loadStoreConfig();
+            });
+        };
+
+        // Payments Management
+        function loadPayments() {
+            const paymentsRef = ref(db, 'payments');
+            onValue(paymentsRef, (snapshot) => {
+                const payments = snapshot.val() || {};
+                const tbody = document.getElementById('paymentsTableBody');
+                tbody.innerHTML = '';
+
+                let pendingCount = 0;
+                let totalRevenue = 0;
+
+                Object.keys(payments).forEach(orderId => {
+                    const payment = payments[orderId];
+                    if (payment.status === 'pending') pendingCount++;
+                    if (payment.status === 'completed') totalRevenue += (payment.receivedUSD || 0);
+
+                    const row = document.createElement('tr');
+                    const createdDate = new Date(payment.createdAt || 0).toLocaleDateString();
+                    const completedDate = payment.completedAt ? new Date(payment.completedAt).toLocaleDateString() : 'N/A';
+                    row.innerHTML = `
+                        <td class="font-mono text-xs">${orderId}</td>
+                        <td class="font-mono text-xs">${payment.walletAddress || 'N/A'}</td>
+                        <td>$${payment.requiredUSD || 0}</td>
+                        <td class="font-mono text-xs">${payment.requiredBTC || 0}</td>
+                        <td><span class="badge ${payment.status === 'completed' ? 'badge-active' : 'badge-inactive'}">${payment.status || 'pending'}</span></td>
+                        <td>${createdDate}</td>
+                        <td>${completedDate}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('pendingPayments').textContent = pendingCount;
+                document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+            });
+        }
+
+        // Wallets Management
+        function loadWallets() {
+            const walletsRef = ref(db, 'wallets');
+            onValue(walletsRef, (snapshot) => {
+                const wallets = snapshot.val() || {};
+                const tbody = document.getElementById('walletsTableBody');
+                tbody.innerHTML = '';
+
+                Object.keys(wallets).forEach(walletId => {
+                    const wallet = wallets[walletId];
+                    const row = document.createElement('tr');
+                    const assignedDate = wallet.assignedAt ? new Date(wallet.assignedAt).toLocaleDateString() : 'N/A';
+                    row.innerHTML = `
+                        <td class="font-mono text-xs">${wallet.address || 'N/A'}</td>
+                        <td><span class="badge ${wallet.isUsed ? 'badge-inactive' : 'badge-active'}">${wallet.isUsed ? 'Used' : 'Available'}</span></td>
+                        <td>${assignedDate}</td>
+                        <td>
+                            <button onclick="deleteWallet('${walletId}')" class="admin-btn admin-btn-danger px-2 py-1 rounded text-xs uppercase">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        window.addWallet = function() {
+            document.getElementById('addWalletModal').classList.add('active');
+        };
+
+        window.saveNewWallet = function() {
+            const address = document.getElementById('newWalletAddress').value;
+            if (!address) {
+                alert('Please enter a wallet address');
+                return;
+            }
+
+            const newWalletRef = push(ref(db, 'wallets'));
+            set(newWalletRef, {
+                address: address,
+                isUsed: false,
+                assignedAt: null
+            }).then(() => {
+                alert('Wallet added successfully!');
+                closeModal('addWalletModal');
+                document.getElementById('newWalletAddress').value = '';
+                loadWallets();
+            });
+        };
+
+        window.deleteWallet = function(walletId) {
+            if (!confirm('Are you sure you want to delete this wallet?')) return;
+            remove(ref(db, `wallets/${walletId}`))
+                .then(() => {
+                    alert('Wallet deleted successfully!');
+                    loadWallets();
+                });
+        };
+
+        // Analytics
+        function loadAnalytics() {
+            const usersRef = ref(db, 'users');
+            get(usersRef).then((snapshot) => {
+                const users = snapshot.val() || {};
+                const toolUsage = {};
+
+                toolKeys.forEach(tool => toolUsage[tool] = 0);
+
+                Object.values(users).forEach(user => {
+                    const toolAccess = user.tool_access || {};
+                    toolKeys.forEach(tool => {
+                        if (toolAccess[tool] === true) toolUsage[tool]++;
+                    });
+                });
+
+                const toolUsageStats = document.getElementById('toolUsageStats');
+                toolUsageStats.innerHTML = '';
+                toolKeys.forEach(tool => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 bg-black/30 rounded';
+                    div.innerHTML = `
+                        <span class="text-white">${tool.replace('_', ' ').toUpperCase()}</span>
+                        <span class="text-red-500 font-bold">${toolUsage[tool]}</span>
+                    `;
+                    toolUsageStats.appendChild(div);
+                });
+            });
+        }
+
+        // Modal functions
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        };
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

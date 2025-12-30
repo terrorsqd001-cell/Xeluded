@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTHENTICATE - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            overflow: hidden;
+        }
+
+        /* --- Core Styles --- */
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .mysterious-btn {
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .mysterious-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mysterious-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .mysterious-btn:hover::before {
+            width: 450px;
+            height: 450px;
+        }
+
+        .mysterious-btn:hover {
+            border-color: #ff3b30;
+            box-shadow: 0 0 30px rgba(255, 59, 48, 0.3);
+            color: white;
+        }
+
+        /* --- Input Styling --- */
+        .scanline-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1rem 1rem 3rem;
+            color: white;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #ff3b30;
+            background: rgba(10, 10, 10, 0.8);
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.1);
+        }
+
+        .input-icon-svg {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.2rem;
+            height: 1.2rem;
+            color: #555;
+            transition: color 0.3s;
+        }
+
+        .input-field:focus + .input-icon-svg {
+            color: #ff3b30;
+        }
+
+        /* --- Security Validation UI --- */
+        .security-check-item {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s;
+        }
+        .security-check-item.valid {
+            color: #30d158; /* Success Green */
+        }
+        .security-check-item.valid svg {
+            display: block;
+        }
+        .security-check-icon {
+            display: none;
+            width: 12px;
+            height: 12px;
+        }
+
+        /* --- Animations --- */
+        .glitch-text {
+            animation: glitch-anim 3s infinite;
+        }
+
+        @keyframes glitch-anim {
+            0% { opacity: 1; transform: translateX(0); }
+            95% { opacity: 1; transform: translateX(0); }
+            96% { opacity: 0.8; transform: translateX(-2px); }
+            97% { opacity: 0.9; transform: translateX(2px); }
+            98% { opacity: 0.8; transform: translateX(-1px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .loading-bar {
+            height: 2px;
+            width: 0%;
+            background: #ff3b30;
+            box-shadow: 0 0 10px #ff3b30;
+            transition: width 0.5s ease-out;
+        }
+
+        .form-container {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .hidden-form {
+            display: none;
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        
+        /* Terminal Error Style */
+        .terminal-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: #666;
+            transition: color 0.3s;
+        }
+        .terminal-error {
+            color: #ff3b30;
+            text-shadow: 0 0 5px rgba(255,59,48,0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative">
+    
+    <div class="watermark uppercase">ACCESS CONTROL</div>
+    <div class="scanline-bg"></div>
+
+    <div class="relative z-10 w-full max-w-md p-6">
+        <div class="professional-border p-8 rounded-sm relative overflow-hidden">
+            
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                    ENCRYPTED GATEWAY
+                </div>
+                <div class="text-[10px] font-mono text-red-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+                    Tier-0 Node
+                </div>
+            </div>
+
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-light tracking-tight text-white mb-2">
+                    <span class="highlight-letter text-5xl">X</span>elude<span class="highlight-letter text-5xl">D</span>
+                </h1>
+                <p id="pageTitle" class="text-xs text-gray-400 uppercase tracking-[0.3em] font-mono glitch-text">Identity Verification</p>
+            </div>
+
+            <form id="loginForm" class="form-container">
+                <div class="input-group">
+                    <input type="email" id="loginUser" class="input-field" placeholder="Email Address" autocomplete="email" required>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="loginPass" class="input-field" placeholder="Password" required>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+
+                <div class="flex justify-between items-center mb-8 text-xs text-gray-500">
+                    <label class="flex items-center cursor-pointer hover:text-gray-300 transition select-none">
+                        <input type="checkbox" class="mr-2 accent-red-600 rounded border-gray-700 bg-gray-900"> Remember Hash
+                    </label>
+                    <a href="#" class="hover:text-red-500 transition font-mono">Recover Key?</a>
+                </div>
+
+                <button type="submit" id="loginBtn" class="mysterious-btn w-full py-4 rounded text-sm font-bold uppercase tracking-widest text-white flex justify-center items-center gap-2">
+                    <span>Authenticate</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-gray-500">New Protocol Member?</p>
+                    <button type="button" id="toggleRegBtn" class="text-xs text-red-500 font-bold hover:text-white transition mt-2 uppercase tracking-wide border-b border-transparent hover:border-red-500 pb-1">
+                        Initialize New Access
+                    </button>
+                </div>
+            </form>
+
+            <form id="registerForm" class="hidden-form form-container">
+                
+                <div class="input-group">
+                    <input type="text" id="regName" class="input-field" placeholder="Codename / Alias" autocomplete="name" required>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+
+                <div class="input-group">
+                    <input type="email" id="regEmail" class="input-field" placeholder="Secure Email" autocomplete="email" required>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 0.5rem;">
+                    <input type="password" id="regPass" class="input-field" placeholder="Set Passphrase" required>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+
+                <div class="mb-5 pl-1 grid grid-cols-3 gap-2">
+                    <div id="checkLen" class="security-check-item">
+                        <svg class="security-check-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>8+ Chars</span>
+                    </div>
+                    <div id="checkNum" class="security-check-item">
+                        <svg class="security-check-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>1+ Number</span>
+                    </div>
+                    <div id="checkSym" class="security-check-item">
+                        <svg class="security-check-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>1+ Symbol</span>
+                    </div>
+                </div>
+
+                <div class="mb-6 text-[10px] text-gray-500 italic">
+                    By registering, you accept the Ghost Protocol T&C and non-disclosure agreement.
+                </div>
+
+                <button type="submit" id="regBtn" class="mysterious-btn w-full py-4 rounded text-sm font-bold uppercase tracking-widest text-white flex justify-center items-center gap-2">
+                    <span>Request Access</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                </button>
+
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-gray-500">Already authorized?</p>
+                    <button type="button" id="toggleLoginBtn" class="text-xs text-gray-400 font-bold hover:text-white transition mt-2 uppercase tracking-wide border-b border-transparent hover:border-gray-400 pb-1">
+                        Return to Login
+                    </button>
+                </div>
+            </form>
+
+            <div id="loadingState" class="hidden mt-6">
+                <div class="flex justify-between text-xs font-mono text-gray-400 mb-2">
+                    <span id="loadingText">DECRYPTING HANDSHAKE...</span>
+                    <span id="loadingPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-800 h-[2px]">
+                    <div id="progressBar" class="loading-bar"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-4 ml-2" id="terminalOutput">
+            <p class="terminal-log">> System ready.</p>
+            <p class="terminal-log">> Connection established to toolhb-8f959.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. Import Firebase from CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        // 2. Your Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIrktFBxhqmO_nYfaVLygOy_hj0jEQ1f8",
+            authDomain: "toolhb-8f959.firebaseapp.com",
+            databaseURL: "https://toolhb-8f959-default-rtdb.firebaseio.com",
+            projectId: "toolhb-8f959",
+            storageBucket: "toolhb-8f959.firebasestorage.app",
+            messagingSenderId: "390399955912",
+            appId: "1:390399955912:web:ff93435c9e6c9ff0fc66fd",
+            measurementId: "G-WTKQE4R2EK"
+        };
+
+        // 3. Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // --- UI Variables ---
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const pageTitle = document.getElementById('pageTitle');
+        const loadingState = document.getElementById('loadingState');
+        const progressBar = document.getElementById('progressBar');
+        const loadingPercent = document.getElementById('loadingPercent');
+        const loadingText = document.getElementById('loadingText');
+        const terminalOutput = document.getElementById('terminalOutput');
+
+        // --- PASSWORD VALIDATION VARIABLES ---
+        const regPassInput = document.getElementById('regPass');
+        const checkLen = document.getElementById('checkLen');
+        const checkNum = document.getElementById('checkNum');
+        const checkSym = document.getElementById('checkSym');
+        let isPasswordValid = false;
+
+        // --- Password Validator Function ---
+        regPassInput.addEventListener('input', () => {
+            const val = regPassInput.value;
+            
+            // 1. Check Length (8+)
+            const hasLen = val.length >= 8;
+            updateCheck(checkLen, hasLen);
+
+            // 2. Check Number
+            const hasNum = /\d/.test(val);
+            updateCheck(checkNum, hasNum);
+
+            // 3. Check Symbol
+            const hasSym = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+            updateCheck(checkSym, hasSym);
+
+            isPasswordValid = hasLen && hasNum && hasSym;
+        });
+
+        function updateCheck(element, isValid) {
+            if(isValid) {
+                element.classList.add('valid');
+            } else {
+                element.classList.remove('valid');
+            }
+        }
+
+        // --- Helper: Check Common Passwords ---
+        function isCommonPassword(password) {
+            const common = ['123456', '12345678', 'password', 'password123', 'qwerty', '123456789', 'admin123', 'abcd123'];
+            return common.includes(password.toLowerCase());
+        }
+
+        // --- Helper: Fetch IP ---
+        async function getClientIp() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.warn("IP Fetch Failed:", error);
+                return "Unknown_IP";
+            }
+        }
+
+        // --- Toggle Logic ---
+        document.getElementById('toggleRegBtn').addEventListener('click', () => toggleForm('register'));
+        document.getElementById('toggleLoginBtn').addEventListener('click', () => toggleForm('login'));
+
+        function toggleForm(type) {
+            loginForm.reset();
+            registerForm.reset();
+            // Reset validation UI
+            [checkLen, checkNum, checkSym].forEach(el => el.classList.remove('valid'));
+            
+            logTerminal("Switching Protocol...");
+
+            if (type === 'register') {
+                loginForm.style.opacity = '0';
+                loginForm.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    loginForm.classList.add('hidden-form');
+                    registerForm.classList.remove('hidden-form');
+                    void registerForm.offsetWidth; // Force Reflow
+                    registerForm.style.opacity = '1';
+                    registerForm.style.transform = 'translateX(0)';
+                    pageTitle.innerText = "Protocol Registration";
+                }, 300);
+            } else {
+                registerForm.style.opacity = '0';
+                registerForm.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    registerForm.classList.add('hidden-form');
+                    loginForm.classList.remove('hidden-form');
+                    void loginForm.offsetWidth; 
+                    loginForm.style.opacity = '1';
+                    loginForm.style.transform = 'translateX(0)';
+                    pageTitle.innerText = "Identity Verification";
+                }, 300);
+            }
+        }
+
+        // --- Helper: Log to 'Terminal' ---
+        function logTerminal(msg, isError = false) {
+            const p = document.createElement('p');
+            p.className = 'terminal-log';
+            if(isError) p.classList.add('terminal-error');
+            p.innerText = `> ${msg}`;
+            terminalOutput.appendChild(p);
+            if(terminalOutput.children.length > 4) {
+                terminalOutput.removeChild(terminalOutput.children[0]);
+            }
+        }
+
+        // --- Helper: Loading Animation ---
+        function setUIState(isLoading, btnId, loadingMsg) {
+            const btn = document.getElementById(btnId);
+            const activeForm = btnId === 'loginBtn' ? loginForm : registerForm;
+
+            if (isLoading) {
+                document.querySelectorAll('input').forEach(i => i.disabled = true);
+                btn.innerHTML = '<span class="animate-pulse">PROCESSING...</span>';
+                btn.style.opacity = '0.7';
+                btn.disabled = true;
+                
+                activeForm.classList.add('opacity-50');
+                loadingState.classList.remove('hidden');
+                loadingText.innerText = loadingMsg;
+                progressBar.style.width = '30%';
+                loadingPercent.innerText = '30%';
+            } else {
+                document.querySelectorAll('input').forEach(i => i.disabled = false);
+                if(btnId === 'loginBtn') {
+                     btn.innerHTML = '<span>Authenticate</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>';
+                } else {
+                     btn.innerHTML = '<span>Request Access</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>';
+                }
+                btn.style.opacity = '1';
+                btn.disabled = false;
+                
+                activeForm.classList.remove('opacity-50');
+                loadingState.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }
+        }
+
+        // --- AUTH: Login ---
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+
+            setUIState(true, 'loginBtn', 'VERIFYING CREDENTIALS...');
+            logTerminal("Initiating handshake...");
+
+            signInWithEmailAndPassword(auth, email, pass)
+                .then((userCredential) => {
+                    progressBar.style.width = '100%';
+                    loadingPercent.innerText = '100%';
+                    logTerminal("AUTH_SUCCESS: Token received.");
+                    
+                    const btn = document.getElementById('loginBtn');
+                    btn.innerHTML = '<span class="text-green-500">ACCESS GRANTED</span>';
+                    btn.style.borderColor = '#30d158';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html'; // CHANGED HERE
+                    }, 1000);
+                })
+                .catch((error) => {
+                    setUIState(false, 'loginBtn');
+                    const errorCode = error.code.replace('auth/', '').toUpperCase().replace(/-/g, '_');
+                    logTerminal(`ERROR: ${errorCode}`, true);
+                });
+        });
+
+        // --- AUTH: Register ---
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // 1. Password Policy Check
+            const pass = document.getElementById('regPass').value;
+            if(!isPasswordValid) {
+                logTerminal("ERROR: SECURITY POLICY NOT MET", true);
+                return;
+            }
+            if(isCommonPassword(pass)) {
+                logTerminal("ERROR: PASSWORD TOO COMMON", true);
+                return;
+            }
+
+            const email = document.getElementById('regEmail').value;
+            const name = document.getElementById('regName').value;
+
+            setUIState(true, 'regBtn', 'ESTABLISHING RECORD...');
+            logTerminal("Creating new identity...");
+
+            createUserWithEmailAndPassword(auth, email, pass)
+                .then(async (userCredential) => {
+                    const user = userCredential.user;
+                    logTerminal("Identity created. Initializing database...");
+                    
+                    // 2. Fetch IP
+                    const userIp = await getClientIp();
+                    // 3. Write Data (Includes Name now)
+                    await set(ref(db, 'users/' + user.uid), {
+                        createdAt: Date.now(),
+                        name: name, 
+                        email: user.email,
+                        ip_address: userIp,
+                        tool_access: {
+                            db_scan: false,
+                            encoder: false,
+                            encryptor_ral: false,
+                            hash_cracker: false,
+                            pass_gen: false,
+                            port_scan: false,
+                            rf_analyzer: false,
+                            wallet_finder: false
+                        }
+                    });
+
+                    progressBar.style.width = '100%';
+                    loadingPercent.innerText = '100%';
+                    logTerminal("REG_SUCCESS: Database synced.");
+                    
+                    const btn = document.getElementById('regBtn');
+                    btn.innerHTML = '<span class="text-green-500">IDENTITY VERIFIED</span>';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html'; // CHANGED HERE
+                    }, 1000);
+                })
+                .catch((error) => {
+                    setUIState(false, 'regBtn');
+                    const errorCode = error.code.replace('auth/', '').toUpperCase().replace(/-/g, '_');
+                    logTerminal(`ERROR: ${errorCode}`, true);
+                    console.error(error);
+                });
+        });
+
+        // AUTO REDIRECT IF ALREADY LOGGED IN
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                logTerminal(`Session restored: ${user.email}`);
+                // Optional: Uncomment below to auto-redirect on page refresh
+                // window.location.href = 'dashboard.html';
+            }
+        });
+
+    </script>
+</body>
+</html>
