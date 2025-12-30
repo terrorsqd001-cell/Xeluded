@@ -93,7 +93,7 @@
             color: white;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: all 0.3s;
         }
 
@@ -124,6 +124,17 @@
             98% { opacity: 0.8; transform: translateX(-1px); }
             100% { opacity: 1; transform: translateX(0); }
         }
+
+        .status-pulse-green {
+            box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.4);
+            animation: pulse-green 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.4); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(48, 209, 88, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center relative">
@@ -151,7 +162,6 @@
                 <p class="text-xs text-gray-400 uppercase tracking-[0.3em] font-mono glitch-text">Payment Gateway</p>
             </div>
 
-            <!-- Plan Details -->
             <div id="planDetails" class="mb-8 p-6 bg-black/30 rounded border border-white/5">
                 <div class="text-center mb-4">
                     <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Selected Plan</p>
@@ -162,7 +172,7 @@
                 
                 <div class="border-t border-white/10 pt-4 mt-4">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs text-gray-500 uppercase tracking-wider">Amount Due</span>
+                        <span class="text-xs text-gray-500 uppercase tracking-wider">Total Payable (USDT)</span>
                     </div>
                     <div class="text-center">
                         <div id="planAmount" class="amount-display">$0.00</div>
@@ -170,56 +180,117 @@
                 </div>
             </div>
 
-            <!-- Payment Form -->
-            <form id="paymentForm" class="space-y-4">
-                <div>
-                    <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Card Number</label>
-                    <input type="text" id="cardNumber" class="input-field" placeholder="1234 5678 9012 3456" maxlength="19" required>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Expiry</label>
-                        <input type="text" id="cardExpiry" class="input-field" placeholder="MM/YY" maxlength="5" required>
+            <div id="paymentSection" class="space-y-6 transition-all duration-500">
+                
+                <div class="text-center bg-black/40 p-6 rounded border border-white/5">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-4">
+                        Scan QR to Pay <span id="scanAmount" class="text-white font-bold"></span>
+                    </p>
+                    
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-white p-2 rounded">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=TXVWmvftCnccgoVdbb4xz9WgeosLUFfjUD" alt="USDT QR Code" class="w-40 h-40">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">CVV</label>
-                        <input type="text" id="cardCVV" class="input-field" placeholder="123" maxlength="4" required>
+
+                    <div class="text-left mb-6">
+                        <label class="block text-[10px] text-gray-500 uppercase tracking-wider mb-2">Wallet Address (TRC20)</label>
+                        <div class="flex items-center gap-2 bg-black/60 border border-white/10 p-3 rounded group hover:border-red-500/50 transition-colors">
+                            <code id="walletAddress" class="text-xs text-red-400 font-mono break-all flex-1">TXVWmvftCnccgoVdbb4xz9WgeosLUFfjUD</code>
+                            <button onclick="copyAddress()" class="text-gray-500 hover:text-white transition-colors" title="Copy Address">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="copyFeedback" class="text-[10px] text-green-500 mt-1 h-4 opacity-0 transition-opacity text-center">Address copied to clipboard!</p>
+                    </div>
+
+                    <div class="text-left">
+                        <label class="block text-[10px] text-white font-bold uppercase tracking-wider mb-2">
+                            Enter Transaction ID / Hash <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="txHash" class="input-field" placeholder="Paste your Transaction Hash here..." autocomplete="off">
+                        <p id="errorMsg" class="text-[10px] text-red-500 mt-2 hidden"></p>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Cardholder Name</label>
-                    <input type="text" id="cardName" class="input-field" placeholder="JOHN DOE" required>
+                <div class="text-center">
+                    <p class="text-[10px] text-gray-600 mb-4">
+                        Please paste the correct Transaction Hash (TXID).<br>System will auto-verify against TronScan.
+                    </p>
                 </div>
 
-                <button type="submit" id="payBtn" class="mysterious-btn w-full py-4 rounded text-sm font-bold uppercase tracking-widest text-white flex justify-center items-center gap-2">
-                    <span>Process Payment</span>
+                <button type="button" id="confirmBtn" class="mysterious-btn w-full py-4 rounded text-sm font-bold uppercase tracking-widest text-white flex justify-center items-center gap-2">
+                    <span>Verify Transaction</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </button>
 
-                <button type="button" onclick="window.location.href='dashboard.html'" class="w-full text-xs text-gray-400 hover:text-white uppercase tracking-widest py-3 border-t border-gray-800 mt-4">
+                <button type="button" onclick="window.location.href='dashboard.html'" class="w-full text-xs text-gray-400 hover:text-white uppercase tracking-widest py-3 border-t border-gray-800 mt-2">
                     Cancel
                 </button>
-            </form>
+            </div>
 
             <div id="loadingState" class="hidden mt-6">
                 <div class="flex justify-between text-xs font-mono text-gray-400 mb-2">
-                    <span id="loadingText">PROCESSING TRANSACTION...</span>
+                    <span id="loadingText">CONNECTING TO TRON NODE...</span>
                     <span id="loadingPercent">0%</span>
                 </div>
                 <div class="w-full bg-gray-800 h-[2px]">
-                    <div id="progressBar" class="h-full bg-red-500" style="width: 0%; transition: width 0.5s;"></div>
+                    <div id="progressBar" class="h-full bg-red-500" style="width: 0%; transition: width 0.3s;"></div>
                 </div>
+            </div>
+
+            <div id="successState" class="hidden animate-fade-in text-center py-8">
+                <div class="flex justify-center mb-6">
+                    <div class="w-20 h-20 rounded-full border-2 border-green-500 flex items-center justify-center status-pulse-green bg-green-500/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white mb-2 tracking-wide">PAYMENT CONFIRMED</h2>
+                <div class="bg-green-500/10 border border-green-500/20 rounded p-3 inline-block mb-6">
+                    <p class="text-xs text-green-400 uppercase tracking-widest font-bold">Transaction Successfully Verified</p>
+                </div>
+
+                <div class="bg-black/40 rounded p-4 border border-white/5 text-left mb-6">
+                    <div class="mb-3 border-b border-white/5 pb-2">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Status</p>
+                        <p class="text-sm text-white font-mono">COMPLETED</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Transaction ID</p>
+                        <p id="displayHash" class="text-xs text-gray-400 font-mono break-all">...</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-white/5">
+                         <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Amount Verified</p>
+                         <p id="verifiedAmount" class="text-sm text-white font-mono">$0.00</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-500 mb-8 leading-relaxed">
+                    Thank you. Your access has been automatically provisioned.<br>
+                    You will be redirected to your dashboard in <span id="countdown">5</span> seconds.
+                </p>
+
+                <button onclick="window.location.href='dashboard.html'" class="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-xs text-gray-300 uppercase tracking-widest transition-colors">
+                    Continue Immediately
+                </button>
             </div>
 
         </div>
     </div>
 
     <script type="module">
-        // Get URL parameters
+        // --- CONFIGURATION ---
+        const MY_WALLET_ADDRESS = "TXVWmvftCnccgoVdbb4xz9WgeosLUFfjUD"; 
+        const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // Official USDT TRC20 Contract
+        // ---------------------
+
         const urlParams = new URLSearchParams(window.location.search);
         const toolKey = urlParams.get('tool');
         const planId = urlParams.get('plan');
@@ -227,87 +298,148 @@
         const label = urlParams.get('label');
         const days = urlParams.get('days');
 
-        // Display plan information
+        // Setup UI
         if (price) {
-            document.getElementById('planAmount').textContent = `$${parseFloat(price).toFixed(2)}`;
+            const formattedPrice = `$${parseFloat(price).toFixed(2)}`;
+            document.getElementById('planAmount').textContent = formattedPrice;
+            document.getElementById('scanAmount').textContent = formattedPrice;
         }
-        
-        if (label) {
-            document.getElementById('planLabel').textContent = label;
-        }
-        
-        if (toolKey) {
-            document.getElementById('planTool').textContent = toolKey.replace('_', ' ').toUpperCase();
-        }
-        
-        if (days) {
-            document.getElementById('planDays').textContent = `${days} Days Access`;
-        }
+        if (label) document.getElementById('planLabel').textContent = label;
+        if (toolKey) document.getElementById('planTool').textContent = toolKey.replace('_', ' ').toUpperCase();
+        if (days) document.getElementById('planDays').textContent = `${days} Days Access`;
 
-        // If required parameters are missing, redirect back
-        if (!toolKey || !planId || !price) {
-            alert('Invalid payment request. Redirecting...');
-            window.location.href = 'dashboard.html';
-        }
+        window.copyAddress = function() {
+            const addressText = document.getElementById('walletAddress').innerText;
+            navigator.clipboard.writeText(addressText).then(() => {
+                const feedback = document.getElementById('copyFeedback');
+                feedback.classList.remove('opacity-0');
+                setTimeout(() => { feedback.classList.add('opacity-0'); }, 2000);
+            });
+        };
 
-        // Card number formatting
-        document.getElementById('cardNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        });
+        // --- REAL VERIFICATION LOGIC ---
+        document.getElementById('confirmBtn').addEventListener('click', async function() {
+            const txHashInput = document.getElementById('txHash');
+            const errorMsg = document.getElementById('errorMsg');
+            const hash = txHashInput.value.trim();
 
-        // Expiry formatting
-        document.getElementById('cardExpiry').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            // Reset Error
+            errorMsg.classList.add('hidden');
+            txHashInput.classList.remove('border-red-500');
+
+            if (!hash) {
+                showError("Please enter a Transaction Hash.");
+                return;
             }
-            e.target.value = value;
-        });
 
-        // CVV formatting (numbers only)
-        document.getElementById('cardCVV').addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/\D/g, '');
-        });
-
-        // Payment form submission
-        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const payBtn = document.getElementById('payBtn');
+            // Start UI Loading
+            const paymentSection = document.getElementById('paymentSection');
             const loadingState = document.getElementById('loadingState');
             const progressBar = document.getElementById('progressBar');
             const loadingText = document.getElementById('loadingText');
-            const loadingPercent = document.getElementById('loadingPercent');
-
-            // Disable form
-            document.querySelectorAll('input').forEach(i => i.disabled = true);
-            payBtn.disabled = true;
-            payBtn.innerHTML = '<span class="animate-pulse">PROCESSING...</span>';
+            
+            paymentSection.style.display = 'none';
             loadingState.classList.remove('hidden');
+            progressBar.style.width = '30%';
 
-            // Simulate payment processing
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                progressBar.style.width = progress + '%';
-                loadingPercent.textContent = progress + '%';
+            try {
+                loadingText.textContent = "QUERYING TRONSCAN API...";
                 
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    loadingText.textContent = 'TRANSACTION COMPLETE';
-                    
-                    // Here you would typically process the actual payment
-                    // For now, we'll redirect back to dashboard after a delay
-                    setTimeout(() => {
-                        alert('Payment processed successfully!');
-                        window.location.href = 'dashboard.html';
-                    }, 1000);
+                // Fetch Transaction Info from TronScan Public API
+                const response = await fetch(`https://apilist.tronscanapi.com/api/transaction-info?hash=${hash}`);
+                
+                progressBar.style.width = '60%';
+                loadingText.textContent = "ANALYZING LEDGER...";
+
+                if (!response.ok) {
+                    throw new Error("Network error connecting to TronScan.");
                 }
-            }, 200);
+
+                const data = await response.json();
+                
+                progressBar.style.width = '80%';
+
+                // --- VERIFICATION CHECKS ---
+                
+                // 1. Check if transaction exists (API usually returns empty object or specific error fields if not found)
+                if (!data || Object.keys(data).length === 0 || data.total === 0) {
+                    throw new Error("Transaction not found. Please check the hash.");
+                }
+
+                // 2. Check if transaction is confirmed and successful
+                if (!data.confirmed || data.contractRet !== "SUCCESS") {
+                    throw new Error("Transaction is failed or not yet confirmed on blockchain.");
+                }
+
+                // 3. Check for USDT Transfer to OUR wallet
+                let validTransfer = false;
+                let transferAmount = 0;
+
+                // Loop through TRC20 transfers in this transaction
+                if (data.trc20TransferInfo) {
+                    for (const transfer of data.trc20TransferInfo) {
+                        // Check if it matches USDT Contract AND sends to Our Wallet
+                        if (transfer.contract_address === USDT_CONTRACT && 
+                            transfer.to_address === MY_WALLET_ADDRESS) {
+                            
+                            validTransfer = true;
+                            // USDT has 6 decimals, so divide by 1,000,000
+                            transferAmount = parseFloat(transfer.amount_str) / 1000000;
+                            break;
+                        }
+                    }
+                }
+
+                if (!validTransfer) {
+                    throw new Error("This transaction did not send USDT to the correct wallet.");
+                }
+
+                // 4. (Optional) Check Amount - Warn if underpaid
+                /* if (price && transferAmount < parseFloat(price)) {
+                     throw new Error(`Insufficient Amount. Sent: $${transferAmount}, Required: $${price}`);
+                } 
+                */
+
+                // --- SUCCESS ---
+                progressBar.style.width = '100%';
+                loadingText.textContent = "VERIFIED!";
+                
+                setTimeout(() => {
+                    loadingState.classList.add('hidden');
+                    document.getElementById('successState').classList.remove('hidden');
+                    document.getElementById('displayHash').textContent = hash;
+                    document.getElementById('verifiedAmount').textContent = `$${transferAmount.toFixed(2)} USDT`;
+                    
+                    // Start Countdown
+                    let seconds = 5;
+                    const countSpan = document.getElementById('countdown');
+                    const timer = setInterval(() => {
+                        seconds--;
+                        countSpan.textContent = seconds;
+                        if (seconds <= 0) {
+                            clearInterval(timer);
+                            window.location.href = 'dashboard.html';
+                        }
+                    }, 1000);
+
+                }, 800);
+
+            } catch (error) {
+                // Handle Errors
+                loadingState.classList.add('hidden');
+                paymentSection.style.display = 'block'; // Show form again
+                showError(error.message);
+            }
         });
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('errorMsg');
+            const txHashInput = document.getElementById('txHash');
+            
+            errorMsg.textContent = msg;
+            errorMsg.classList.remove('hidden');
+            txHashInput.classList.add('border-red-500');
+        }
     </script>
 </body>
 </html>
-
