@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAYMENT - XeludeD Arsenal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;800&display=swap');
+        
+        body {
+            background-color: #0a0a0c;
+            color: #d1d1d6;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+        }
+
+        .professional-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .highlight-letter {
+            color: #ff3b30;
+            text-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            font-weight: 800;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 15vw;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .scanline-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .mysterious-btn {
+            background: linear-gradient(145deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .mysterious-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .mysterious-btn:hover::before {
+            width: 450px;
+            height: 450px;
+        }
+
+        .mysterious-btn:hover {
+            border-color: #ff3b30;
+            box-shadow: 0 0 30px rgba(255, 59, 48, 0.3);
+            color: white;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            color: white;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #ff3b30;
+            background: rgba(10, 10, 10, 0.8);
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.1);
+        }
+
+        .amount-display {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #30d158;
+            text-shadow: 0 0 20px rgba(48, 209, 88, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glitch-text {
+            animation: glitch-anim 3s infinite;
+        }
+
+        @keyframes glitch-anim {
+            0% { opacity: 1; transform: translateX(0); }
+            95% { opacity: 1; transform: translateX(0); }
+            96% { opacity: 0.8; transform: translateX(-2px); }
+            97% { opacity: 0.9; transform: translateX(2px); }
+            98% { opacity: 0.8; transform: translateX(-1px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative">
+    
+    <div class="watermark uppercase">PAYMENT GATEWAY</div>
+    <div class="scanline-bg"></div>
+
+    <div class="relative z-10 w-full max-w-md p-6">
+        <div class="professional-border p-8 rounded-sm relative overflow-hidden">
+            
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                    SECURE TRANSACTION
+                </div>
+                <div class="text-[10px] font-mono text-red-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+                    Tier-0 Node
+                </div>
+            </div>
+
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-light tracking-tight text-white mb-2">
+                    <span class="highlight-letter text-5xl">X</span>elude<span class="highlight-letter text-5xl">D</span>
+                </h1>
+                <p class="text-xs text-gray-400 uppercase tracking-[0.3em] font-mono glitch-text">Payment Gateway</p>
+            </div>
+
+            <!-- Plan Details -->
+            <div id="planDetails" class="mb-8 p-6 bg-black/30 rounded border border-white/5">
+                <div class="text-center mb-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Selected Plan</p>
+                    <h3 id="planLabel" class="text-xl font-bold text-white uppercase tracking-wide mb-2">Loading...</h3>
+                    <p id="planTool" class="text-sm text-gray-400 mb-4"></p>
+                    <p id="planDays" class="text-xs text-gray-500"></p>
+                </div>
+                
+                <div class="border-t border-white/10 pt-4 mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-gray-500 uppercase tracking-wider">Amount Due</span>
+                    </div>
+                    <div class="text-center">
+                        <div id="planAmount" class="amount-display">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <form id="paymentForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Card Number</label>
+                    <input type="text" id="cardNumber" class="input-field" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Expiry</label>
+                        <input type="text" id="cardExpiry" class="input-field" placeholder="MM/YY" maxlength="5" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">CVV</label>
+                        <input type="text" id="cardCVV" class="input-field" placeholder="123" maxlength="4" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Cardholder Name</label>
+                    <input type="text" id="cardName" class="input-field" placeholder="JOHN DOE" required>
+                </div>
+
+                <button type="submit" id="payBtn" class="mysterious-btn w-full py-4 rounded text-sm font-bold uppercase tracking-widest text-white flex justify-center items-center gap-2">
+                    <span>Process Payment</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </button>
+
+                <button type="button" onclick="window.location.href='dashboard.html'" class="w-full text-xs text-gray-400 hover:text-white uppercase tracking-widest py-3 border-t border-gray-800 mt-4">
+                    Cancel
+                </button>
+            </form>
+
+            <div id="loadingState" class="hidden mt-6">
+                <div class="flex justify-between text-xs font-mono text-gray-400 mb-2">
+                    <span id="loadingText">PROCESSING TRANSACTION...</span>
+                    <span id="loadingPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-800 h-[2px]">
+                    <div id="progressBar" class="h-full bg-red-500" style="width: 0%; transition: width 0.5s;"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const toolKey = urlParams.get('tool');
+        const planId = urlParams.get('plan');
+        const price = urlParams.get('price');
+        const label = urlParams.get('label');
+        const days = urlParams.get('days');
+
+        // Display plan information
+        if (price) {
+            document.getElementById('planAmount').textContent = `$${parseFloat(price).toFixed(2)}`;
+        }
+        
+        if (label) {
+            document.getElementById('planLabel').textContent = label;
+        }
+        
+        if (toolKey) {
+            document.getElementById('planTool').textContent = toolKey.replace('_', ' ').toUpperCase();
+        }
+        
+        if (days) {
+            document.getElementById('planDays').textContent = `${days} Days Access`;
+        }
+
+        // If required parameters are missing, redirect back
+        if (!toolKey || !planId || !price) {
+            alert('Invalid payment request. Redirecting...');
+            window.location.href = 'dashboard.html';
+        }
+
+        // Card number formatting
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // Expiry formatting
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // CVV formatting (numbers only)
+        document.getElementById('cardCVV').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Payment form submission
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payBtn = document.getElementById('payBtn');
+            const loadingState = document.getElementById('loadingState');
+            const progressBar = document.getElementById('progressBar');
+            const loadingText = document.getElementById('loadingText');
+            const loadingPercent = document.getElementById('loadingPercent');
+
+            // Disable form
+            document.querySelectorAll('input').forEach(i => i.disabled = true);
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<span class="animate-pulse">PROCESSING...</span>';
+            loadingState.classList.remove('hidden');
+
+            // Simulate payment processing
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                loadingPercent.textContent = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    loadingText.textContent = 'TRANSACTION COMPLETE';
+                    
+                    // Here you would typically process the actual payment
+                    // For now, we'll redirect back to dashboard after a delay
+                    setTimeout(() => {
+                        alert('Payment processed successfully!');
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                }
+            }, 200);
+        });
+    </script>
+</body>
+</html>
+
