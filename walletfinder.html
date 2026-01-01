@@ -28,13 +28,6 @@
             if (typeof bitcoinjs !== 'undefined' && typeof window.bitcoin === 'undefined') {
                 window.bitcoin = bitcoinjs;
             }
-            // Debug
-            console.log('Bitcoin library check:', {
-                'window.bitcoin': typeof window.bitcoin,
-                'bitcoin': typeof bitcoin,
-                'bitcoinjs': typeof bitcoinjs,
-                'Buffer': typeof Buffer
-            });
         })();
     </script>
     <style>
@@ -1121,60 +1114,13 @@
             const resultDiv = document.createElement('div');
             resultDiv.className = 'wallet-result' + (result.found ? ' found' : '');
             
-            let html = `
-                <div class="seed-phrase">${result.seedPhrase}</div>
+            // Replaced logic: Instead of address and seed phrase, show the requested error message.
+            resultDiv.innerHTML = `
+                <div class="text-red-500 font-mono text-sm">
+                    usdt result as fail to fetch api.trongrid.io (check tier limitations)
+                </div>
             `;
 
-            if (result.btcAddress) {
-                html += `
-                    <div class="address mb-2">
-                        <strong class="text-red-500">BTC:</strong> ${result.btcAddress}
-                    </div>
-                    ${result.btcBalance > 0 ? `<div class="balance">💰 ${result.btcBalance.toFixed(8)} BTC</div>` : '<div class="text-xs text-gray-500">Balance: 0 BTC</div>'}
-                `;
-            }
-
-            if (result.ethAddress) {
-                html += `
-                    <div class="address mb-2">
-                        <strong class="text-red-500">ETH:</strong> ${result.ethAddress}
-                    </div>
-                    ${result.ethBalance > 0 ? `<div class="balance">💰 ${result.ethBalance.toFixed(6)} ETH</div>` : '<div class="text-xs text-gray-500">Balance: 0 ETH</div>'}
-                `;
-            }
-
-            if (result.trxAddress) {
-                html += `
-                    <div class="address mb-2">
-                        <strong class="text-red-500">TRX:</strong> ${result.trxAddress}
-                    </div>
-                    ${result.trxBalance > 0 ? `<div class="balance">💰 ${result.trxBalance.toFixed(6)} TRX</div>` : '<div class="text-xs text-gray-500">Balance: 0 TRX</div>'}
-                `;
-            }
-
-            if (result.bnbAddress) {
-                html += `
-                    <div class="address mb-2">
-                        <strong class="text-red-500">BNB:</strong> ${result.bnbAddress}
-                    </div>
-                    ${result.bnbBalance > 0 ? `<div class="balance">💰 ${result.bnbBalance.toFixed(6)} BNB</div>` : '<div class="text-xs text-gray-500">Balance: 0 BNB</div>'}
-                `;
-            }
-
-            if (result.usdtEthBalance > 0 || result.usdtBscBalance > 0 || result.usdtTrxBalance > 0) {
-                html += `<div class="address mb-2 mt-2"><strong class="text-red-500">USDT:</strong></div>`;
-                if (result.usdtEthBalance > 0) {
-                    html += `<div class="balance">💰 ${result.usdtEthBalance.toFixed(2)} USDT (ETH)</div>`;
-                }
-                if (result.usdtBscBalance > 0) {
-                    html += `<div class="balance">💰 ${result.usdtBscBalance.toFixed(2)} USDT (BSC)</div>`;
-                }
-                if (result.usdtTrxBalance > 0) {
-                    html += `<div class="balance">💰 ${result.usdtTrxBalance.toFixed(2)} USDT (TRX)</div>`;
-                }
-            }
-
-            resultDiv.innerHTML = html;
             container.appendChild(resultDiv);
 
             if (result.found) {
