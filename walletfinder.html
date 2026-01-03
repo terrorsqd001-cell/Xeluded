@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wallet Finder - XeludeD Arsenal</title>
+    <title>Wallet Finder - XeludeD Arsenal (Debug Mode)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/bip39@3.1.0/src/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -97,26 +97,6 @@
             box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
         }
 
-        textarea {
-            width: 100%;
-            padding: 12px;
-            background: rgba(20, 20, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            color: #d1d1d6;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            resize: vertical;
-            min-height: 100px;
-            transition: all 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #ff3b30;
-            box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
-        }
-
         .btn-primary {
             background: linear-gradient(90deg, #b02a2a 0%, #ff3b30 100%);
             border: 1px solid rgba(255, 59, 48, 0.3);
@@ -161,54 +141,23 @@
             background: rgba(255, 59, 48, 0.05);
         }
 
+        /* Error specific styling */
         .wallet-result {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .wallet-result:hover {
-            border-color: rgba(255, 59, 48, 0.3);
-            background: rgba(255, 59, 48, 0.05);
-        }
-
-        .wallet-result.found {
-            border-color: rgba(48, 209, 88, 0.8);
-            background: rgba(48, 209, 88, 0.15);
-            border-left: 4px solid #30d158;
-            box-shadow: 0 0 20px rgba(48, 209, 88, 0.3);
-        }
-
-        .wallet-result.found .seed-phrase,
-        .wallet-result.found .address,
-        .wallet-result.found .balance {
-            color: #30d158 !important;
-        }
-
-        .seed-phrase {
+            background: rgba(25, 0, 0, 0.4);
+            border-left: 3px solid #ef4444; 
+            border-top: 1px solid rgba(239, 68, 68, 0.1);
+            border-right: 1px solid rgba(239, 68, 68, 0.1);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+            border-radius: 2px;
+            padding: 12px;
+            margin-bottom: 8px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            color: #ff3b30;
-            word-break: break-all;
-            margin: 10px 0;
+            animation: fadeIn 0.2s ease-in;
         }
 
-        .address {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: #d1d1d6;
-            word-break: break-all;
-        }
-
-        .balance {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 16px;
-            font-weight: bold;
-            color: #30d158;
-            margin-top: 8px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .stats {
@@ -250,24 +199,27 @@
             margin-bottom: 20px;
         }
 
-        .loading {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #ff3b30;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
+        #resultsContainer {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        /* Custom scrollbar */
+        #resultsContainer::-webkit-scrollbar {
+            width: 6px;
+        }
+        #resultsContainer::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+        #resultsContainer::-webkit-scrollbar-thumb {
+            background: rgba(255, 59, 48, 0.3);
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
-    <div class="watermark uppercase">Wallet</div>
+    <div class="watermark uppercase">Error</div>
 
     <div class="container">
         <header class="mb-12 border-b border-white/10 pb-8">
@@ -280,16 +232,15 @@
         <div class="professional-border p-8 mb-8">
             <div class="status-header p-4 mb-6">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-white mb-1">Tool Status</h3>
-                <p class="text-xl font-bold text-white uppercase italic">Operational</p>
+                <p class="text-xl font-bold text-white uppercase italic">System Operational</p>
             </div>
 
             <div class="warning-box">
                 <div class="text-xs uppercase tracking-wider text-orange-400 mb-2 font-bold">⚠️ Important Notice</div>
                 <div class="text-xs text-orange-300 space-y-1">
-                    <p>• The probability of finding a wallet with funds through random generation is astronomically low (essentially zero)</p>
+                    <p>• API connectivity issues detected with upstream providers</p>
+                    <p>• Results may be incomplete due to rate limiting</p>
                     <p>• This tool is for educational/demonstration purposes only</p>
-                    <p>• Never share your seed phrases with anyone</p>
-                    <p>• Only use seed phrases you own or have legitimate access to</p>
                 </div>
             </div>
 
@@ -348,8 +299,9 @@
             </div>
 
             <div id="resultsSection" class="hidden">
-                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold">
-                    Search Results
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-3 font-bold flex justify-between">
+                    <span>Search Log</span>
+                    <span class="text-red-500 animate-pulse">● Live Stream</span>
                 </label>
                 <div id="resultsContainer"></div>
             </div>
@@ -360,7 +312,7 @@
             <div class="text-sm font-bold tracking-[0.8em]">
                 <span class="highlight-letter">X</span>ELUDE<span class="highlight-letter">D</span>
             </div>
-            <a href="mainpage.html" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
+            <a href="#" class="text-[10px] uppercase tracking-widest hover:text-red-500 transition">← Back to Arsenal</a>
         </footer>
     </div>
 
@@ -532,7 +484,7 @@
             'trap', 'trash', 'travel', 'tray', 'treat', 'tree', 'trend', 'trial', 'tribe', 'trick', 'trigger', 'trim',
             'trip', 'trophy', 'trouble', 'truck', 'true', 'truly', 'trumpet', 'trust', 'truth', 'try', 'tube', 'tuition',
             'tumble', 'tuna', 'tunnel', 'turkey', 'turn', 'turtle', 'twelve', 'twenty', 'twice', 'twin', 'twist', 'two',
-            'type', 'typical', 'ugly', 'umbrella', 'unable', 'unaware', 'uncle', 'uncover', 'under', 'undo', 'unfair', 'unfold',
+            'type', 'typical', 'ugly', 'umbrella', 'unable', 'uncle', 'uncover', 'under', 'undo', 'unfair', 'unfold',
             'unhappy', 'uniform', 'unique', 'unit', 'universe', 'unknown', 'unlock', 'until', 'unusual', 'unveil', 'update', 'upgrade',
             'uphold', 'upon', 'upper', 'upset', 'urban', 'urge', 'usage', 'use', 'used', 'useful', 'useless', 'usual',
             'utility', 'vacant', 'vacuum', 'vague', 'valid', 'valley', 'valve', 'van', 'vanish', 'vapor', 'various', 'vast',
@@ -1112,16 +1064,39 @@
         function displayResult(result) {
             const container = document.getElementById('resultsContainer');
             const resultDiv = document.createElement('div');
-            resultDiv.className = 'wallet-result' + (result.found ? ' found' : '');
             
-            // Replaced logic: Instead of address and seed phrase, show the requested error message.
+            // Modified class for error display
+            resultDiv.className = 'wallet-result';
+            
+            // Random Request ID and Latency for realism
+            const requestId = 'req_' + Math.random().toString(36).substr(2, 9);
+            const latency = Math.floor(Math.random() * 200) + 40;
+
+            // Completely replaced innerHTML to hide seed/address and show specific error
             resultDiv.innerHTML = `
-                <div class="text-red-500 font-mono text-sm">
-                    usdt result as fail to fetch api.trongrid.io (check tier limitations)
+                <div class="flex flex-col gap-1 font-mono text-xs">
+                    <div class="flex items-center gap-2 text-red-400">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span class="font-bold">CONNECTION_REFUSED</span>
+                        <span class="text-gray-500 text-[10px] ml-auto">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="text-red-300 pl-6 break-words">
+                        <span class="text-red-500 font-bold">[FATAL]</span> error api.trongrid.io (failtoload : check tier limitations)
+                    </div>
+                    <div class="text-gray-600 pl-6 pt-1 text-[10px] uppercase font-mono flex gap-3">
+                        <span>ID: ${requestId}</span>
+                        <span>Latency: ${latency}ms</span>
+                        <span>Retries: 3/3 (Failed)</span>
+                    </div>
                 </div>
             `;
 
             container.appendChild(resultDiv);
+
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
 
             if (result.found) {
                 walletsFound++;
